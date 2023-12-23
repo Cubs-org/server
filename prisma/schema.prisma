@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+enum TypeMessage {
+  interaction
+  chatStatement
+  generalStatement
+}
+
+enum KanbanType {
+  task
+  project
+}
+
+enum MediaTypes {
+  image
+  video
+  file
+  pdf
+  generalArchive
+}
+
+enum EmbedTypes {
+  image
+  youtube
+  video
+  pdf
+  googleDrive
+  cubsPage
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  password    String
+  email       String   @unique
+  icon        String
+  preferences Json?
+  trash       Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspaces Workspace[]
+  Member     Member[]
+  Chat       Chat[]
+  Goal       Goal[]
+}
+
+model Plan {
+  id            String @id @default(uuid())
+  type          String
+  paymentMethod String
+  price         Float
+}
+
+model Workspace {
+  id       String @id @default(uuid())
+  kanbanId String
+  userId   String
+
+  user   User   @relation(fields: [userId], references: [id])
+  kanban Kanban @relation(fields: [kanbanId], references: [id])
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  title     String
+  details   Json?
+  trash     Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+}
+
+model Project {
+  id     String @id @default(uuid())
+  data   Json?
+  taskId String
+
+  task Task @relation(fields: [taskId], references: [id])
+
+  members Member[]
+  chats   Chat[]
+  areas   ToolArea[]
+  pages   Page[]
+}
+
+model Member {
+  id        String @id @default(uuid())
+  userId    String
+  projectId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model Chat {
+  id   String      @id @default(uuid())
+  type TypeMessage @default(interaction)
+
+  userId    String
+  projectId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model ToolArea {
+  id        String  @id @default(uuid())
+  loadOrder Int
+  trash     Boolean
+  projectId String
+
+  project Project @relation(fields: [projectId], references: [id])
+  tools   Tool[]
+}
+
+model Tool {
+  id     String  @id @default(uuid())
+  type   String
+  data   Json
+  trash  Boolean
+  areaId String
+
+  area ToolArea @relation(fields: [areaId], references: [id])
+}
+
+// Components
+model Kanban {
+  id    String     @id @default(uuid())
+  title String
+  type  KanbanType
+
+  Workspace Workspace[]
+}
+
+model KanbanColumn {
+  id        String  @id @default(uuid())
+  title     String
+  color     String
+  loadOrder Int
+  trash     Boolean
+
+  KanbanCard KanbanCard[]
+}
+
+model KanbanCard {
+  id          String  @id @default(uuid())
+  dataContent Json
+  trash       Boolean
+  columnId    String
+
+  column KanbanColumn @relation(fields: [columnId], references: [id])
+}
+
+model Page {
+  id        String @id @default(uuid())
+  projectId String
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model Media {
+  id      String     @id @default(uuid())
+  type    MediaTypes
+  content Bytes
+}
+
+model EmbedByLink {
+  id   String     @id @default(uuid())
+  type EmbedTypes
+  url  String
+}
+
+model RichText {
+  id      String @id @default(uuid())
+  content String
+}
+
+model CheckList {
+  id      String @id @default(uuid())
+  content String
+}
+
+model Table {
+  id   String @id @default(uuid())
+  data Json
+}
+
+model Goal {
+  id     String  @id @default(uuid())
+  title  String
+  trash  Boolean
+  userId String
+
+  user User @relation(fields: [userId], references: [id])
+
+  GoalColumn GoalColumn[]
+}
+
+model GoalColumn {
+  id     String  @id @default(uuid())
+  data   Json
+  trash  Boolean
+  goalId String
+
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  goalData GoalData[]
+}
+
+model GoalData {
+  id       String  @id @default(uuid())
+  content  String
+  trash    Boolean
+  columnId String
+
+  column GoalColumn @relation(fields: [columnId], references: [id])
+}
