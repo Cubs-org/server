@@ -8,6 +8,25 @@ datasource db {
   // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+enum AccountType {
+  free
+  plus
+  business
+  enterprise
+}
+
+enum PlanType {
+  perMonth
+  perYear
+  perThreeYears
+}
+
+enum PaymentType {
+  creditCard
+  debitCard
+  bankSlip
+}
+
 enum TypeMessage {
   interaction
   chatStatement
@@ -42,10 +61,13 @@ model User {
   password    String
   email       String   @unique
   icon        String
+  planId      String
   preferences Json?
-  trash       Boolean
+  trash       Boolean? @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  plan Plan @relation(fields: [planId], references: [id])
 
   workspaces Workspace[]
   Member     Member[]
@@ -54,10 +76,12 @@ model User {
 }
 
 model Plan {
-  id            String @id @default(uuid())
-  type          String
-  paymentMethod String
-  price         Float
+  id          String      @id @default(uuid())
+  accountType AccountType
+  planType    PlanType
+  paymentType PaymentType
+
+  user User[]
 }
 
 model Workspace {
@@ -124,10 +148,10 @@ model ToolArea {
 }
 
 model Tool {
-  id     String  @id @default(uuid())
+  id     String   @id @default(uuid())
   type   String
   data   Json
-  trash  Boolean
+  trash  Boolean? @default(false)
   areaId String
 
   area ToolArea @relation(fields: [areaId], references: [id])
@@ -153,9 +177,9 @@ model KanbanColumn {
 }
 
 model KanbanCard {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   dataContent Json
-  trash       Boolean
+  trash       Boolean? @default(false)
   columnId    String
 
   column KanbanColumn @relation(fields: [columnId], references: [id])
@@ -196,9 +220,9 @@ model Table {
 }
 
 model Goal {
-  id     String  @id @default(uuid())
+  id     String   @id @default(uuid())
   title  String
-  trash  Boolean
+  trash  Boolean? @default(false)
   userId String
 
   user User @relation(fields: [userId], references: [id])
@@ -207,9 +231,9 @@ model Goal {
 }
 
 model GoalColumn {
-  id     String  @id @default(uuid())
+  id     String   @id @default(uuid())
   data   Json
-  trash  Boolean
+  trash  Boolean? @default(false)
   goalId String
 
   goal Goal @relation(fields: [goalId], references: [id])
