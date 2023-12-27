@@ -27,6 +27,12 @@ enum PaymentType {
   bankSlip
 }
 
+enum Status {
+  active
+  inactive
+  pending
+}
+
 enum TypeMessage {
   interaction
   chatStatement
@@ -58,30 +64,23 @@ enum EmbedTypes {
 model User {
   id          String   @id @default(uuid())
   name        String
-  password    String
+  password    String?
   email       String   @unique
   icon        String
-  planId      String
   preferences Json?
   trash       Boolean? @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  plan Plan @relation(fields: [planId], references: [id])
+  status      Status
+  accountType AccountType
+  planType    PlanType
+  paymentType PaymentType
 
   workspaces Workspace[]
   Member     Member[]
   Chat       Chat[]
   Goal       Goal[]
-}
-
-model Plan {
-  id          String      @id @default(uuid())
-  accountType AccountType
-  planType    PlanType
-  paymentType PaymentType
-
-  user User[]
 }
 
 model Workspace {

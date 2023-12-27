@@ -3,5 +3,4 @@ export type User = {
     password: string;
     email: string;
     icon: string;
-    planId: string;
 }
