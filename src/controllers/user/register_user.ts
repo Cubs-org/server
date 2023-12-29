@@ -1,30 +1,24 @@
-import { User } from ".";
-
-import bcrypt from "bcrypt";
-
 import b from "../../lib/animals-image.json";
-import { prisma } from "../../lib/prisma";
+import jwt from "jsonwebtoken";
 
 import { RegisterUser } from "../../types/userTypes";
 
-import CreateUser from "../../models/user/CreateUser"
+import findUser from "../../models/find_user";
+import createUser from "../../models/create_user";
+import hashPass from "./hash_pass";
 
-class UserController extends User {
+export default async function registerUser(req, res) {
 
-    async registerUser(req, res) {
+    const { name, password, email, icon } = req.body;
 
-        const { name, password, email, icon } = req.body;
-
-        let hashedPassword;
-        if (this.password) {
-            hashedPassword = await bcrypt.hash(password, 10);
-        } else {
-            hashedPassword = null;
-        }
-
-        let pic = icon ? 
-                    icon :
-                    b.animals[Math.floor(Math.random() * b.animals.length)];
+    if (!name || !email) {
+        return res.status(400).json({
+            status: 400,
+            message: 'Missing data'
+        });
+    } else {
+        var hashedPassword = hashPass(password);
+        var pic = icon ? icon : b.animals[Math.floor(Math.random() * b.animals.length)];
 
         const data = {
             name: name,
@@ -38,8 +32,7 @@ class UserController extends User {
         };
 
         try {
-            const createUser = new CreateUser();
-            const userAlreadyExists = await createUser.findUser();
+            const userAlreadyExists = await findUser(email);
 
             if (userAlreadyExists) {
                 return {
@@ -47,13 +40,26 @@ class UserController extends User {
                     message: 'User already exists'
                 };
             } else {
-                const user = await prisma.user.create({
-                    data: {
-                        ...data as RegisterUser
+                const user = await createUser({
+                    ...data,
+                    password: await hashedPassword
+                } as RegisterUser);
+
+                jwt.sign({ user }, "secret", { expiresIn: '72h' }, (err, token) => {
+                    if (token) {
+                        console.log(token);
+                        return res.status(200).json({
+                            status: 200,
+                            message: 'User created successfully',
+                            token: token
+                        });
+                    } else {
+                        return res.status(500).json({
+                            status: 500,
+                            message: 'JWT error'
+                        });
                     }
                 });
-
-                return user;
             }
         } catch (error) {
             console.log(error);
@@ -64,5 +70,3 @@ class UserController extends User {
         }
     }
 }
-
-export default UserController;

@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { userRoute } from "./user_authentication";
+import { userRoute } from "./userRoutes";
 
 export async function appRoutes(app: FastifyInstance) {
 
