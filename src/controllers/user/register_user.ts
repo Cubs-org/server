@@ -3,9 +3,11 @@ import jwt from "jsonwebtoken";
 
 import { RegisterUser } from "../../types/userTypes";
 
-import findUser from "../../models/find_user";
-import createUser from "../../models/create_user";
 import hashPass from "./hash_pass";
+
+import createUser from "../../models/user/create_user";
+import { findUserByEmail } from "../../models/user/find_user";
+import registerWorkspace from "../workspace/register_workspace";
 
 export default async function registerUser(req, res) {
 
@@ -32,7 +34,7 @@ export default async function registerUser(req, res) {
         };
 
         try {
-            const userAlreadyExists = await findUser(email);
+            const userAlreadyExists = await findUserByEmail(email);
 
             if (userAlreadyExists) {
                 return {
@@ -45,19 +47,17 @@ export default async function registerUser(req, res) {
                     password: await hashedPassword
                 } as RegisterUser);
 
-                jwt.sign({ user }, "secret", { expiresIn: '72h' }, (err, token) => {
-                    if (token) {
-                        console.log(token);
-                        return res.status(200).json({
-                            status: 200,
-                            message: 'User created successfully',
-                            token: token
-                        });
-                    } else {
-                        return res.status(500).json({
-                            status: 500,
-                            message: 'JWT error'
-                        });
+                const workspace = await registerWorkspace(user.id);
+
+                const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
+
+                return res.status(200).send({
+                    status: 200,
+                    message: 'User created',
+                    data: {
+                        user: user,
+                        workspace: workspace,
+                        token: token
                     }
                 });
             }
