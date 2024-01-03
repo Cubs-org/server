@@ -62,15 +62,15 @@ enum EmbedTypes {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  name        String
-  password    String?
-  email       String   @unique
-  icon        String
-  preferences Json?
-  trash       Boolean? @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  password  String?
+  email     String   @unique
+  icon      String
+  settings  Json?
+  trash     Boolean? @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   status      Status
   accountType AccountType

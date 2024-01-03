@@ -8,6 +8,7 @@ import hashPass from "./hash_pass";
 import createUser from "../../models/user/create_user";
 import { findUserByEmail } from "../../models/user/find_user";
 import registerWorkspace from "../workspace/register_workspace";
+import { updateUserById } from "../../models/user/update_user";
 
 export default async function registerUser(req, res) {
 
@@ -49,13 +50,28 @@ export default async function registerUser(req, res) {
 
                 const workspace = await registerWorkspace(user.id);
 
-                const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
+                const token = jwt.sign({ user, workspace }, "secret", { expiresIn: '72h' });
+
+
+
+                const userUpdated = await updateUserById(
+                    {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        password: user.password,
+                        icon: user.icon,
+                        settings: {
+                            token: token
+                        }
+                    }
+                );
 
                 return res.status(200).send({
                     status: 200,
                     message: 'User created',
                     data: {
-                        user: user,
+                        user: userUpdated,
                         workspace: workspace,
                         token: token
                     }
