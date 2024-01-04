@@ -20,12 +20,11 @@ export default async function registerUser(req, res) {
             message: 'Missing data'
         });
     } else {
-        var hashedPassword = hashPass(password);
         var pic = icon ? icon : b.animals[Math.floor(Math.random() * b.animals.length)];
 
         const data = {
             name: name,
-            password: hashedPassword,
+            password: password ? hashPass(password) : null,
             email: email,
             icon: pic,
             status: 'active',
@@ -44,15 +43,12 @@ export default async function registerUser(req, res) {
                 };
             } else {
                 const user = await createUser({
-                    ...data,
-                    password: await hashedPassword
+                    ...data
                 } as RegisterUser);
 
                 const workspace = await registerWorkspace(user.id);
 
                 const token = jwt.sign({ user, workspace }, "secret", { expiresIn: '72h' });
-
-
 
                 const userUpdated = await updateUserById(
                     {
@@ -61,9 +57,7 @@ export default async function registerUser(req, res) {
                         email: user.email,
                         password: user.password,
                         icon: user.icon,
-                        settings: {
-                            token: token
-                        }
+                        accessToken: token,
                     }
                 );
 

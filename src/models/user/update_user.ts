@@ -11,7 +11,7 @@ async function updateUserById(data) {
             email: data.email,
             password: data.password,
             icon: data.icon,
-            settings: data.settings
+            accessToken: data.accessToken
         }
     });
 
@@ -29,7 +29,7 @@ async function updateUserByEmail(data) {
             email: data.email,
             password: data.password,
             icon: data.icon,
-            settings: data.settings
+            accessToken: data.accessToken
         }
     });
 

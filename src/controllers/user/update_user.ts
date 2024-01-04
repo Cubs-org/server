@@ -7,7 +7,7 @@ type userRequest = {
         email: string,
         password?: string,
         icon?: string,
-        settings?: string
+        accessToken?: string
     }
 };
 
