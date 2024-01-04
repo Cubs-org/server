@@ -1,5 +1,5 @@
-import createKanban from "../../models/kanban/create_kanban_wksp";
-import { KanbanType } from "../../types/kanbanTypes";
+import createKanban from "../models/model.kanban.create";
+import { KanbanType } from "../types/kanbanTypes";
 
 async function registerKanban({ title, type }:KanbanType) {
 

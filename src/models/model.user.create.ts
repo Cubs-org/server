@@ -1,5 +1,5 @@
-import { prisma } from "../../lib/prisma";
-import { RegisterUser } from "../../types/userTypes";
+import { prisma } from "../database/prisma-client";
+import { RegisterUser } from "../types/userTypes";
 
 async function createUser(data: RegisterUser) {
     const user = await prisma.user.create({

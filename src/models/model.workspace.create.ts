@@ -1,4 +1,4 @@
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../database/prisma-client";
 
 async function createWorkspace(data) {
     const workspace = await prisma.workspace.create({
