@@ -3,7 +3,7 @@ import { findUserByEmail } from "../models/model.user.find";
 import { updateUserByEmail } from "../models/model.user.update";
 import { User } from "../types/userTypes";
 
-async function updateUser(req, res) {
+async function updateUser(req, reply) {
 
     const userReq = req.body as User;
 
@@ -14,23 +14,23 @@ async function updateUser(req, res) {
             const userUpdated = await updateUserByEmail(userReq.email);
 
             if (userUpdated) {
-                res.status(HTTP_STATUS.OK).json({
+                reply.status(HTTP_STATUS.OK).send({
                     message: "User updated successfully",
                     user: userUpdated,
                 });
             } else {
-                res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
                     message: "User not updated",
                 });
             }
         } else {
-            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+            reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
                 message: "User not found",
             });
         }
     } catch (error) {
         console.error('Error:', error);
-        res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
             error: 'Internal server error',
         });
     }

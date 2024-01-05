@@ -24,7 +24,6 @@ async function authenticateUser(req, reply) {
             return reply.status(HTTP_STATUS.UNAUTHORIZED).send({ error: 'Invalid password.' });
         }
     } catch (error) {
-        console.error('Error:', error);
         return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ error: 'Internal Server Error' });
     }
 }

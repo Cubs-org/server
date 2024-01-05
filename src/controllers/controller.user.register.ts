@@ -7,22 +7,25 @@ import { findUserByEmail } from "../models/model.user.find";
 import registerWorkspace from "./controller.workspace.create";
 import { updateUserById } from "../models/model.user.update";
 import { HTTP_STATUS } from "../lib/http_status";
+import fetchOAuth from "../utils/fetch_oath";
 
-export default async function registerUser(req, res) {
-    const { name, password, email, icon } = req.body;
+export default async function registerUser(req, reply) {
+    const { name, password, email, icon, access_token } = req.body;
 
     if (!name || !email) {
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        return reply.status(HTTP_STATUS.BAD_REQUEST).send({
             status: HTTP_STATUS.BAD_REQUEST,
             message: 'Missing data',
         });
     }
 
-    const pic = icon || b.animals[Math.floor(Math.random() * b.animals.length)];
+    let passwordHash, pic;
+    pic = b.animals[Math.floor(Math.random() * b.animals.length)];
+    passwordHash = await hashPass(password);
 
     const data = {
         name,
-        password: password ? hashPass(password) : null,
+        password: password ? passwordHash : null,
         email,
         icon: pic,
         status: 'active',
@@ -31,11 +34,33 @@ export default async function registerUser(req, res) {
         paymentType: 'creditCard',
     };
 
+    if (!data.password && !access_token) {
+        return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+            status: HTTP_STATUS.BAD_REQUEST,
+            message: 'Missing password or access_token',
+            data: data,
+        });
+    } else if (access_token) {
+        const isValidToken = await fetchOAuth(access_token);
+
+        if (!isValidToken) {
+            return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: 'Invalid access_token',
+            });
+        } else {
+            const { name, email, picture } = isValidToken;
+            data.name = name;
+            data.email = email;
+            data.icon = picture;
+        }
+    }
+
     try {
         const userAlreadyExists = await findUserByEmail(email);
 
         if (userAlreadyExists) {
-            return res.status(HTTP_STATUS.CONFLICT).json({
+            return reply.status(HTTP_STATUS.CONFLICT).send({
                 status: HTTP_STATUS.CONFLICT,
                 message: 'User already exists',
             });
@@ -54,7 +79,7 @@ export default async function registerUser(req, res) {
             accessToken: token,
         });
 
-        return res.status(HTTP_STATUS.OK).json({
+        return reply.status(HTTP_STATUS.OK).send({
             status: HTTP_STATUS.OK,
             message: 'User created',
             data: {
@@ -65,7 +90,7 @@ export default async function registerUser(req, res) {
         });
     } catch (error) {
         console.error('Error:', error);
-        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
             status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
             message: 'Internal server error',
         });

@@ -20,7 +20,6 @@ async function registerWorkspace(userId: string): Promise<WorkspaceType | { erro
             return { error: "Kanban not created" };
         }
     } catch (error) {
-        console.error('Error:', error);
         return { error: "Internal server error" };
     }
 }
