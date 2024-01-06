@@ -5,7 +5,6 @@ CREATE TABLE `User` (
     `password` VARCHAR(191) NULL,
     `email` VARCHAR(191) NOT NULL,
     `icon` VARCHAR(191) NOT NULL,
-    `accessToken` MEDIUMTEXT NULL,
     `preferences` JSON NULL,
     `trash` BOOLEAN NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

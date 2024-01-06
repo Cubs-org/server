@@ -10,10 +10,10 @@ import { HTTP_STATUS } from "../lib/http_status";
 import fetchOAuth from "../utils/fetch_oath";
 
 export default async function registerUser(req, reply) {
-    const { name, password, email, icon, access_token } = req.body;
+    const { name, password, email, access_token } = req.body;
 
     if (!name || !email) {
-        return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+        return reply.send({
             status: HTTP_STATUS.BAD_REQUEST,
             message: 'Missing data',
         });
@@ -35,16 +35,15 @@ export default async function registerUser(req, reply) {
     };
 
     if (!data.password && !access_token) {
-        return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+        return reply.send({
             status: HTTP_STATUS.BAD_REQUEST,
-            message: 'Missing password or access_token',
-            data: data,
+            message: 'Missing password or access_token'
         });
     } else if (access_token) {
         const isValidToken = await fetchOAuth(access_token);
 
         if (!isValidToken) {
-            return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+            return reply.send({
                 status: HTTP_STATUS.BAD_REQUEST,
                 message: 'Invalid access_token',
             });
@@ -60,7 +59,7 @@ export default async function registerUser(req, reply) {
         const userAlreadyExists = await findUserByEmail(email);
 
         if (userAlreadyExists) {
-            return reply.status(HTTP_STATUS.CONFLICT).send({
+            return reply.send({
                 status: HTTP_STATUS.CONFLICT,
                 message: 'User already exists',
             });
@@ -75,21 +74,19 @@ export default async function registerUser(req, reply) {
             name: user.name,
             email: user.email,
             password: user.password,
-            icon: user.icon,
-            accessToken: token,
+            icon: user.icon
         });
 
-        return reply.status(HTTP_STATUS.OK).send({
+        return reply.send({
             status: HTTP_STATUS.OK,
             message: 'User created',
             data: {
                 user: userUpdated,
                 workspace,
-                token,
+                token: token,
             },
         });
     } catch (error) {
-        console.error('Error:', error);
         return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
             status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
             message: 'Internal server error',

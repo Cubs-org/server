@@ -6,25 +6,25 @@ async function authenticateUser(req, reply) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return reply.status(HTTP_STATUS.BAD_REQUEST).send({ error: 'Request is missing data.' });
+        return reply.send({ message: 'Request is missing data.', status: HTTP_STATUS.BAD_REQUEST });
     }
 
     try {
         const user = await findUserByEmail(email);
 
         if (!user) {
-            return reply.status(HTTP_STATUS.UNAUTHORIZED).send({ error: 'Invalid email.' });
+            return reply.send({ message: 'Invalid email.', status: HTTP_STATUS.UNAUTHORIZED });
         }
 
         const passwordMatch = await compare(password, user.password);
 
         if (passwordMatch) {
-            return reply.status(HTTP_STATUS.OK).send({ user });
+            return reply.send({ user, status: HTTP_STATUS.OK });
         } else {
-            return reply.status(HTTP_STATUS.UNAUTHORIZED).send({ error: 'Invalid password.' });
+            return reply.send({ message: 'Invalid password.', status: HTTP_STATUS.UNAUTHORIZED });
         }
     } catch (error) {
-        return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ error: 'Internal Server Error' });
+        return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error', status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
     }
 }
 

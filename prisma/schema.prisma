@@ -67,7 +67,6 @@ model User {
   password    String?
   email       String   @unique
   icon        String
-  accessToken String?  @db.MediumText
   preferences Json?
   trash       Boolean? @default(false)
   createdAt   DateTime @default(now())
