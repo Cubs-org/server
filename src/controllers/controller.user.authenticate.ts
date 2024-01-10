@@ -1,6 +1,7 @@
 import { HTTP_STATUS } from "../lib/http_status";
 import { findUserByEmail } from "../models/model.user.find";
 import { compare } from "bcrypt";
+import jwt from 'jsonwebtoken';
 
 async function authenticateUser(req, reply) {
     const { email, password } = req.body;
@@ -13,13 +14,14 @@ async function authenticateUser(req, reply) {
         const user = await findUserByEmail(email);
 
         if (!user) {
-            return reply.send({ message: 'Invalid email.', status: HTTP_STATUS.UNAUTHORIZED });
+            return reply.send({ message: 'User does not exists.', status: HTTP_STATUS.UNAUTHORIZED });
         }
 
         const passwordMatch = await compare(password, user.password);
 
         if (passwordMatch) {
-            return reply.send({ user, status: HTTP_STATUS.OK });
+            const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
+            return reply.send({ user, status: HTTP_STATUS.OK, token });
         } else {
             return reply.send({ message: 'Invalid password.', status: HTTP_STATUS.UNAUTHORIZED });
         }

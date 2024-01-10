@@ -86,7 +86,7 @@ model User {
 model Workspace {
   id       String @id @default(uuid())
   kanbanId String
-  userId   String
+  userId   String @unique
 
   user   User   @relation(fields: [userId], references: [id])
   kanban Kanban @relation(fields: [kanbanId], references: [id])
@@ -194,7 +194,7 @@ model Page {
 model Media {
   id      String     @id @default(uuid())
   type    MediaTypes
-  content Bytes
+  content Bytes      @db.LongBlob
 }
 
 model EmbedByLink {

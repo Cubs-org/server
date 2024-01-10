@@ -7,4 +7,4 @@ export type User = {
     icon: string;
 }
 
-export interface RegisterUser extends User, Account {};
+export type  UserDB = User & Account | null;

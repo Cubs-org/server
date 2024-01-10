@@ -1,10 +1,10 @@
 import { prisma } from "../database/prisma-client";
-import { RegisterUser } from "../types/userTypes";
+import { UserDB } from "../types/userTypes";
 
-async function createUser(data: RegisterUser) {
+async function createUser(data) {
     const user = await prisma.user.create({
         data: {
-            ...data as RegisterUser
+            ...data
         }
     });
 

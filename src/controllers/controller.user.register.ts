@@ -1,6 +1,6 @@
 import b from "../lib/default_animal_images.json";
 import jwt from "jsonwebtoken";
-import { RegisterUser } from "../types/userTypes";
+import { UserDB } from "../types/userTypes";
 import hashPass from "../utils/hash_password";
 import createUser from "../models/model.user.create";
 import { findUserByEmail } from "../models/model.user.find";
@@ -9,7 +9,7 @@ import { updateUserById } from "../models/model.user.update";
 import { HTTP_STATUS } from "../lib/http_status";
 import fetchOAuth from "../utils/fetch_oath";
 
-export default async function registerUser(req, reply) {
+export default async function UserDB(req, reply) {
     const { name, password, email, access_token } = req.body;
 
     if (!name || !email) {
@@ -65,24 +65,15 @@ export default async function registerUser(req, reply) {
             });
         }
 
-        const user = await createUser(data as RegisterUser);
+        const user = await createUser(data as UserDB);
         const workspace = await registerWorkspace(user.id);
-        const token = jwt.sign({ user, workspace }, "secret", { expiresIn: '72h' });
-
-        const userUpdated = await updateUserById({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            password: user.password,
-            icon: user.icon
-        });
+        const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
 
         return reply.send({
             status: HTTP_STATUS.OK,
             message: 'User created',
             data: {
-                user: userUpdated,
-                workspace,
+                user: user,
                 token: token,
             },
         });

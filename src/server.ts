@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { appRoutes } from './routes';
 
 import SocketIO from 'socket.io';
+import socketController from './socketControllers';
 
 require('dotenv').config();
 
@@ -33,16 +34,7 @@ fastify.ready(err => {
   try {
     if (err) throw err;
 
-    fastify.io.on('connection', socket => {
-
-      // Listen for a new user joining and broadcast a notice to all users
-      socket.on('message', message => {
-        console.log(">> ", message);
-        socket.broadcast.emit('message', message);
-      });
-
-      socket.on('disconnect', () => console.log('disconnected'));
-    });
+    socketController(fastify);
   } catch (err) {
     console.error(err);
   }

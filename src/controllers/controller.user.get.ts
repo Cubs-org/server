@@ -1,15 +1,16 @@
+import { HTTP_STATUS } from "../lib/http_status";
 import { findUserById } from "../models/model.user.find";
 
 async function getUser(req, reply) {
     
-    const { idUser } = req.query;
+    const { userId } = req.query;
 
     try {
-        const user = await findUserById(idUser);
+        const user = await findUserById(userId);
 
-        return reply.code(200).send(user);
+        return reply.send({ user, status: HTTP_STATUS.OK });
     } catch (error) {
-        return reply.code(500).send({ error: 'Internal Server Error' });
+        return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error' });
     }
 }
 
