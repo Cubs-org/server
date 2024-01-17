@@ -5,13 +5,17 @@ import { appRoutes } from './routes';
 import SocketIO from 'socket.io';
 import socketController from './socketControllers';
 
+// Load environment variables
 require('dotenv').config();
 
+// Create Fastify instance
 const fastify = Fastify();
 
+// Configure Fastify instance
 const HOST = process.env.HOST || '0.0.0.0';
 const PORT = Number(process.env.PORT || 3000);
 
+// Configure CORS
 fastify.register(cors, {
     origin: '*',
     methods: '*',
@@ -19,6 +23,7 @@ fastify.register(cors, {
     credentials: true
 });
 
+// Configure Socket.io
 fastify.register(require('fastify-socket.io'), {
   cors: {
     origin: '*',
@@ -28,8 +33,10 @@ fastify.register(require('fastify-socket.io'), {
   }
 });
 
+// Routes
 fastify.register(appRoutes)
 
+// SocketControllers 
 fastify.ready(err => {
   try {
     if (err) throw err;
@@ -40,6 +47,7 @@ fastify.ready(err => {
   }
 });
 
+// Start server
 fastify.listen({ 
   port: PORT, 
   host: HOST 

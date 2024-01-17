@@ -4,12 +4,10 @@ import { UserDB } from "../types/userTypes";
 import hashPass from "../utils/hash_password";
 import createUser from "../models/model.user.create";
 import { findUserByEmail } from "../models/model.user.find";
-import registerWorkspace from "./controller.workspace.create";
-import { updateUserById } from "../models/model.user.update";
 import { HTTP_STATUS } from "../lib/http_status";
 import fetchOAuth from "../utils/fetch_oath";
 
-export default async function UserDB(req, reply) {
+export default async function registerUser(req, reply) {
     const { name, password, email, access_token } = req.body;
 
     if (!name || !email) {
@@ -66,7 +64,7 @@ export default async function UserDB(req, reply) {
         }
 
         const user = await createUser(data as UserDB);
-        const workspace = await registerWorkspace(user.id);
+        // const workspace = await registerWorkspace(user.id);
         const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
 
         return reply.send({

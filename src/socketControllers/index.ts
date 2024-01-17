@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { findUserByEmail } from "../models/model.user.find";
 import TestMessages from "./testMessages";
 import getUser from "./userSocketControllers";
 

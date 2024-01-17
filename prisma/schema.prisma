@@ -61,6 +61,21 @@ enum EmbedTypes {
   cubsPage
 }
 
+// enum DB_Column_Types {
+//   text
+//   selection
+//   multi_selection
+//   number
+//   date
+//   formula
+//   relation
+//   rollup
+//   assign
+//   checkbox
+// }
+
+// Tables
+
 model User {
   id          String   @id @default(uuid())
   name        String
@@ -69,126 +84,95 @@ model User {
   icon        String
   preferences Json?
   trash       Boolean? @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   status      Status
-  accountType AccountType
-  planType    PlanType
-  paymentType PaymentType
+  accountType AccountType @map("account_type")
+  planType    PlanType    @map("plan_type")
+  paymentType PaymentType @map("payment_type")
 
-  workspaces Workspace[]
-  Member     Member[]
-  Chat       Chat[]
-  Goal       Goal[]
+  page      Page[]
+  workspace Workspace[]
+  member    Member[]
+  chat      Chat[]
 }
 
 model Workspace {
   id       String @id @default(uuid())
-  kanbanId String
+  kanbanId String @map("kanban_id")
   userId   String @unique
 
-  user   User   @relation(fields: [userId], references: [id])
-  kanban Kanban @relation(fields: [kanbanId], references: [id])
+  user     User    @relation(fields: [userId], references: [id])
+  database DataHub @relation(fields: [kanbanId], references: [id])
 }
 
-model Task {
-  id        String   @id @default(uuid())
-  title     String
-  details   Json?
-  trash     Boolean
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Page {
+  id      String   @id @default(uuid())
+  title   String
+  ownerId String   @map("owner_id")
+  trash   Boolean? @default(false)
 
-  projects Project[]
+  pageProperties PageProperties[]
+  owner          User             @relation(fields: [ownerId], references: [id])
+  member         Member[]
+  tool           Tool[]
+  chat           Chat[]
 }
 
-model Project {
-  id     String @id @default(uuid())
-  data   Json?
-  taskId String
+model DataHub {
+  id    String   @id @default(uuid())
+  title String
+  trash Boolean? @default(false)
 
-  task Task @relation(fields: [taskId], references: [id])
+  Workspace Workspace[]
+  Kanban    Kanban[]
+  Goal      Goal[]
+}
 
-  members Member[]
-  chats   Chat[]
-  areas   ToolArea[]
-  pages   Page[]
+model PageProperties {
+  id    String   @id @default(uuid())
+  title String
+  data  Json?
+  trash Boolean? @default(false)
+
+  pageId String @map("page_id")
+
+  page Page @relation(fields: [pageId], references: [id])
+
+  @@map("page_properties")
 }
 
 model Member {
-  id        String @id @default(uuid())
-  userId    String
-  projectId String
+  id      String   @id @default(uuid())
+  isAdmin Boolean? @default(false) @map("is_admin")
+  userId  String
+  pageId  String
 
-  user    User    @relation(fields: [userId], references: [id])
-  project Project @relation(fields: [projectId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  page Page @relation(fields: [pageId], references: [id])
 }
 
 model Chat {
   id   String      @id @default(uuid())
   type TypeMessage @default(interaction)
 
-  userId    String
-  projectId String
+  userId String @map("user_id")
+  pageId String @map("page_id")
 
-  user    User    @relation(fields: [userId], references: [id])
-  project Project @relation(fields: [projectId], references: [id])
-}
-
-model ToolArea {
-  id        String  @id @default(uuid())
-  loadOrder Int
-  trash     Boolean
-  projectId String
-
-  project Project @relation(fields: [projectId], references: [id])
-  tools   Tool[]
+  user User @relation(fields: [userId], references: [id])
+  page Page @relation(fields: [pageId], references: [id])
 }
 
 model Tool {
-  id     String   @id @default(uuid())
-  type   String
-  data   Json
-  trash  Boolean? @default(false)
-  areaId String
+  id         String   @id @default(uuid())
+  type       String
+  properties Json
+  trash      Boolean? @default(false)
 
-  area ToolArea @relation(fields: [areaId], references: [id])
-}
+  pageId String
 
-// Components
-model Kanban {
-  id    String     @id @default(uuid())
-  title String
-  type  KanbanType
-
-  Workspace Workspace[]
-}
-
-model KanbanColumn {
-  id        String  @id @default(uuid())
-  title     String
-  color     String
-  loadOrder Int
-  trash     Boolean
-
-  KanbanCard KanbanCard[]
-}
-
-model KanbanCard {
-  id          String   @id @default(uuid())
-  dataContent Json
-  trash       Boolean? @default(false)
-  columnId    String
-
-  column KanbanColumn @relation(fields: [columnId], references: [id])
-}
-
-model Page {
-  id        String @id @default(uuid())
-  projectId String
-
-  project Project @relation(fields: [projectId], references: [id])
+  page Page @relation(fields: [pageId], references: [id])
 }
 
 model Media {
@@ -218,33 +202,22 @@ model Table {
   data Json
 }
 
+model Kanban {
+  id    String     @id @default(uuid())
+  type  KanbanType
+  title String
+
+  databaseId String @map("database_id")
+
+  database DataHub @relation(fields: [databaseId], references: [id])
+}
+
 model Goal {
-  id     String   @id @default(uuid())
-  title  String
-  trash  Boolean? @default(false)
-  userId String
+  id    String   @id @default(uuid())
+  title String
+  trash Boolean? @default(false)
 
-  user User @relation(fields: [userId], references: [id])
+  databaseId String @map("database_id")
 
-  GoalColumn GoalColumn[]
-}
-
-model GoalColumn {
-  id     String   @id @default(uuid())
-  data   Json
-  trash  Boolean? @default(false)
-  goalId String
-
-  goal Goal @relation(fields: [goalId], references: [id])
-
-  goalData GoalData[]
-}
-
-model GoalData {
-  id       String  @id @default(uuid())
-  content  String
-  trash    Boolean
-  columnId String
-
-  column GoalColumn @relation(fields: [columnId], references: [id])
+  database DataHub @relation(fields: [databaseId], references: [id])
 }

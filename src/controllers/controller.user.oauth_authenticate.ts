@@ -3,7 +3,6 @@ import { findUserByEmail } from "../models/model.user.find";
 import fetchOAuth from "../utils/fetch_oath";
 import createUser from "../models/model.user.create";
 import { UserDB } from "../types/userTypes";
-import registerWorkspace from "./controller.workspace.create";
 
 import jwt from 'jsonwebtoken';
 
@@ -40,8 +39,7 @@ async function authenticateUserByGoogle(req, reply) {
                 planType: 'perMonth',
                 paymentType: 'creditCard'
             } as UserDB);
-
-            const workspace = await registerWorkspace(userCreated.id);
+            
             const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
 
             return reply.send({ user: userCreated, token: token, status: HTTP_STATUS.OK });

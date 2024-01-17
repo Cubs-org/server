@@ -1,10 +1,19 @@
 import { prisma } from "../database/prisma-client";
-import { UserDB } from "../types/userTypes";
+import formatTitle from "../utils/formatTitle";
 
 async function createUser(data) {
     const user = await prisma.user.create({
         data: {
-            ...data
+            ...data,
+            workspace: {
+                create: {
+                    database: {
+                        create: {
+                            title: formatTitle(data.name),
+                        }
+                    }
+                }
+            }
         }
     });
 
