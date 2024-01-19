@@ -1,8 +1,10 @@
 import { FastifyInstance } from "fastify";
-import getWorkspace from "../controllers/controller.workspace.find";
+import WorkspaceController from "../controllers/WorkspaceController";
+
+const workspaceController = new WorkspaceController();
 
 export async function workspaceRoute(app: FastifyInstance) {
 
     // Get a workspace
-    app.get('/workspace/:userId', getWorkspace);
+    app.get('/workspace/:userId', workspaceController.getWorkspace);
 }

@@ -58,21 +58,21 @@ enum EmbedTypes {
   video
   pdf
   googleDrive
-  cubsPage
+  page
 }
 
-// enum DB_Column_Types {
-//   text
-//   selection
-//   multi_selection
-//   number
-//   date
-//   formula
-//   relation
-//   rollup
-//   assign
-//   checkbox
-// }
+enum PagePropsTypes {
+  text
+  selection
+  multi_selection
+  number
+  date
+  formula
+  relation
+  rollup
+  assign
+  checkbox
+}
 
 // Tables
 
@@ -101,7 +101,7 @@ model User {
 model Workspace {
   id       String @id @default(uuid())
   kanbanId String @map("kanban_id")
-  userId   String @unique
+  userId   String @unique @map("user_id")
 
   user     User    @relation(fields: [userId], references: [id])
   database DataHub @relation(fields: [kanbanId], references: [id])
@@ -115,42 +115,45 @@ model Page {
 
   pageProperties PageProperties[]
   owner          User             @relation(fields: [ownerId], references: [id])
-  member         Member[]
   tool           Tool[]
   chat           Chat[]
 }
 
 model DataHub {
   id    String   @id @default(uuid())
-  title String
+  title String?
   trash Boolean? @default(false)
 
   Workspace Workspace[]
   Kanban    Kanban[]
   Goal      Goal[]
+
+  @@map("data_hub")
 }
 
 model PageProperties {
-  id    String   @id @default(uuid())
+  id    String         @id @default(uuid())
+  type  PagePropsTypes
   title String
   data  Json?
-  trash Boolean? @default(false)
+  trash Boolean?       @default(false)
 
   pageId String @map("page_id")
 
-  page Page @relation(fields: [pageId], references: [id])
+  page   Page     @relation(fields: [pageId], references: [id])
+  member Member[]
 
   @@map("page_properties")
 }
 
 model Member {
-  id      String   @id @default(uuid())
-  isAdmin Boolean? @default(false) @map("is_admin")
-  userId  String
-  pageId  String
+  id               String   @id @default(uuid())
+  isAdmin          Boolean? @default(false) @map("is_admin")
+  userId           String   @map("user_id")
+  pagePropertiesId String   @map("page_properties_id")
 
-  user User @relation(fields: [userId], references: [id])
-  page Page @relation(fields: [pageId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+  pageProperties PageProperties @relation(fields: [pagePropertiesId], references: [id])
 }
 
 model Chat {
@@ -185,16 +188,22 @@ model EmbedByLink {
   id   String     @id @default(uuid())
   type EmbedTypes
   url  String
+
+  @@map("embed_by_link")
 }
 
 model RichText {
   id      String @id @default(uuid())
   content String
+
+  @@map("rich_text")
 }
 
 model CheckList {
   id      String @id @default(uuid())
   content String
+
+  @@map("check_list")
 }
 
 model Table {
