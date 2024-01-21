@@ -51,7 +51,7 @@ fastify.ready(err => {
 fastify.listen({ 
   port: PORT, 
   host: HOST 
-}).then(() => console.log(`Server is listening at http://${HOST}:${PORT}`));
+}).then(() => console.log(`Server is listening at http://localhost:${PORT}`));
 
 declare module 'fastify' {
     interface FastifyInstance {

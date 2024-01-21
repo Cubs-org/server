@@ -1,6 +1,29 @@
 import { prisma } from "../database/prisma-client";
 
 class PageModel {
+
+    async create(pageName: string, ownerId: string) {
+        const page = await prisma.page.create({
+            data: {
+                title: pageName,
+                ownerId: ownerId
+            }
+        });
+        return page;
+    }
+
+    async update(pageId: string, data: any) {
+        const page = await prisma.page.update({
+            where: {
+                id: pageId
+            },
+            data: {
+                ...data
+            }
+        });
+        return page;
+    }
+
     async getAllPages() {
         const pages =  await prisma.page.findMany();
         return pages;
@@ -15,13 +38,22 @@ class PageModel {
         return page;
     }
     
-    async getPageByOwner(owner: string) {
-        const page = await prisma.page.findFirst({
+    async getPagesByOwner(owner: string) {
+        const page = await prisma.page.findMany({
             where: {
                 ownerId: owner
             }
         });
         return page;
+    }
+
+    async getPropertiesByPage(pageId: string) {
+        const properties = await prisma.pageProperties.findMany({
+            where: {
+                pageId: pageId
+            }
+        });
+        return properties;
     }
 }
 

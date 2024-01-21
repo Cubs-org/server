@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { userRoute } from "./userRoutes";
 import { workspaceRoute } from "./workspaceRoutes";
+import { pageRoute } from "./pageRoutes";
 
 export async function appRoutes(app: FastifyInstance) {
 
@@ -9,4 +10,7 @@ export async function appRoutes(app: FastifyInstance) {
 
     // workspace route
     app.register(workspaceRoute);
+
+    // page route
+    app.register(pageRoute);
 }
