@@ -2,16 +2,6 @@ import { prisma } from "../database/prisma-client";
 
 class WorkspaceModel {
 
-    async create(data) {
-        const workspace = await prisma.workspace.create({
-            data: {
-                kanbanId: data.kanbanId,
-                userId: data.userId,
-            }
-        });
-        return workspace;
-    }
-
     async getAllWorkspaces() {
         const workspaces =  await prisma.workspace.findMany();
         return workspaces;
@@ -35,6 +25,22 @@ class WorkspaceModel {
             }
         });
         return workspace;
+    }
+
+    async delete(userId: string) {
+        const workspaceDeleted = await prisma.workspace.delete({
+            where: {
+                userId,
+            }
+        });
+
+        const databaseDeleted = await prisma.dataHub.delete({
+            where: {
+                id: workspaceDeleted.databaseId
+            }
+        });
+
+        return workspaceDeleted;
     }
 }
  export default WorkspaceModel;

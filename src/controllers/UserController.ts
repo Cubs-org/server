@@ -6,8 +6,10 @@ import hashPass from "../utils/hash_password";
 import b from "../lib/default_animal_images.json";
 import jwt from "jsonwebtoken";
 import { compare } from "bcrypt";
+import WorkspaceModel from "../models/WorkspaceModel";
 
-const model = new UserModel();
+const userModel = new UserModel();
+const wkspModel = new WorkspaceModel();
 
 class UserController {
 
@@ -58,7 +60,7 @@ class UserController {
         }
     
         try {
-            const userAlreadyExists = await model.getByEmail(email);
+            const userAlreadyExists = await userModel.getByEmail(email);
     
             if (userAlreadyExists) {
                 return reply.send({
@@ -67,7 +69,7 @@ class UserController {
                 });
             }
     
-            const user = await model.create(data);
+            const user = await userModel.create(data);
             // const workspace = await registerWorkspace(user.id);
             const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
     
@@ -95,7 +97,7 @@ class UserController {
         }
     
         try {
-            const user = await model.getByEmail(email);
+            const user = await userModel.getByEmail(email);
     
             if (!user) {
                 return reply.send({ message: 'User does not exists.', status: HTTP_STATUS.UNAUTHORIZED });
@@ -129,14 +131,14 @@ class UserController {
             }
     
             const { email } = isValidToken;
-            const user = await model.getByEmail(email);
+            const user = await userModel.getByEmail(email);
     
             if (user) {
                 const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
                 return reply.send({ user, token: token, status: HTTP_STATUS.OK });
             } else {
                 const { name, email, picture } = isValidToken;
-                const userCreated = await model.create({
+                const userCreated = await userModel.create({
                     name,
                     email,
                     icon: picture,
@@ -161,11 +163,15 @@ class UserController {
         const { userId } = req.query;
     
         try {
-            const user = await model.getById(userId);
-    
-            return reply.send({ user, status: HTTP_STATUS.OK });
-        } catch (error) {
-            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error' });
+            const user = await userModel.getById(userId);
+
+            if (!user) throw new Error('User not found');
+            else
+                return reply.send({ user, status: HTTP_STATUS.OK });
+        } catch (error:any) {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", errorMessage);
+            return reply.send({ message: errorMessage, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
     
@@ -174,10 +180,10 @@ class UserController {
         const userReq = req.body as User;
     
         try {
-            const user = await model.getByEmail(userReq.email);
+            const user = await userModel.getByEmail(userReq.email);
     
             if (user) {
-                const userUpdated = await model.update(userReq.email);
+                const userUpdated = await userModel.update(userReq.email);
     
                 if (userUpdated) {
                     reply.status(HTTP_STATUS.OK).send({
@@ -198,6 +204,68 @@ class UserController {
             console.error('Error:', error);
             reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
                 error: 'Internal server error',
+            });
+        }
+    }
+
+    async setUserTrashedStatus(req, reply) {
+        const { userId } = req.query;
+    
+        try {
+            const user = await userModel.getById(userId);
+    
+            if (!user) throw new Error('User not found');
+            else {
+
+                let status = !user.trash;
+
+                const userUpdated = await userModel.delete(userId, status);
+
+                if (!userUpdated) {
+                    throw new Error('User not updated');
+                } else {
+                    return reply.send({
+                        status: HTTP_STATUS.OK,
+                        message: 'User moved to trash',
+                    });
+                }
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", errorMessage);
+            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+                status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+                message: errorMessage
+            });
+        }
+    }
+
+    async delete(req, reply) {
+        const { userId } = req.query;
+    
+        try {
+            const user = await userModel.getById(userId);
+    
+            if (!user) throw new Error('User not found');
+            else {
+                const workspace = await wkspModel.delete(userId);
+                const userDeleted = await userModel.deletePermanently(userId);
+    
+                if (!userDeleted) {
+                    throw new Error('User not deleted');
+                } else {
+                    return reply.send({
+                        status: HTTP_STATUS.OK,
+                        message: 'User deleted',
+                    });
+                }
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", errorMessage);
+            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+                status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+                message: errorMessage
             });
         }
     }

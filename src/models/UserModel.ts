@@ -1,5 +1,5 @@
 import { prisma } from "../database/prisma-client";
-import formatTitle from "../utils/formatTitle";
+import formatTitle from "../utils/formatTitle"
 
 class UserModel {
 
@@ -57,6 +57,40 @@ class UserModel {
         });
     
         return user;
+    }
+
+    async delete(id: string, trash: boolean) {
+
+        const userDeleted = await prisma.workspace.update({
+            where: {
+                userId: id
+            },
+            data: {
+                user: {
+                    update: {
+                        trash: trash
+                    }
+                },
+                database: {
+                    update: {
+                        trash: trash
+                    }
+                }
+            }
+        });
+
+        return userDeleted;
+    }
+
+    async deletePermanently(id: string) {
+
+        const userDeleted = await prisma.user.delete({
+            where: {
+                id: id
+            }
+        });
+    
+        return userDeleted;
     }
 }
 

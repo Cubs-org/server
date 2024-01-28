@@ -4,4 +4,4 @@ node_modules
 .env.*
 # Files that might appear on external volumes
 public/uploads
-prisma/migrations
+prisma/migrations/

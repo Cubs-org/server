@@ -14,4 +14,8 @@ export async function userRoute(app: FastifyInstance) {
 
     // Get a user
     app.get('/getUser', userController.get);
+
+    // Delete a user
+    app.delete('/deleteUser', userController.setUserTrashedStatus);
+    app.delete('/deleteUser/permanently', userController.delete);
 }
