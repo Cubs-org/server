@@ -1,6 +1,8 @@
 import { HTTP_STATUS } from "../lib/http_status";
-import PagePropertyModel from "../models/PageProperties";
+import PagePropertyModel from "../models/PagePropertiesModel";
 import UserModel from "../models/UserModel";
+import { PageProperty } from "../types/pagesTypes";
+import { setDefaultValuesFromPageProperty } from "../utils/setDefaultValuesFromPageProperty";
 
 const userModel = new UserModel();
 const pagePropModel = new PagePropertyModel();
@@ -9,15 +11,27 @@ class PagePropertyController {
 
     async create(req, reply) {
 
-        const { title, type, data, pageId } = req.body;
+        const { type, data, pageId } = req.body;
+
+        let { title } = setDefaultValuesFromPageProperty({ type, data } as PageProperty);
 
         try {
-            const pageProperty = await pagePropModel.create(title, type, data, pageId);
+
+            let pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage = await pagePropModel.getPropertiesByPage(pageId),
+                pageProperty =  {} as PageProperty;
+
+            if (pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage.filter(pgProp => pgProp.title === title).length > 0)
+            {
+                const newTitle = `${title} (${pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage.length})`;
+                pageProperty = await pagePropModel.create(newTitle, type, data, pageId);
+            } else {
+                pageProperty = await pagePropModel.create(title, type, data, pageId);
+            }
 
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
         } catch (error) {
             console.log(error);
-            return reply.send({ status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+            return reply.send({ message: error, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
 
@@ -29,13 +43,18 @@ class PagePropertyController {
             const user = await userModel.getById(userId);
 
             if (user) {
-                const member = await pagePropModel.addMember(userId, isAdmin, pagePropertyId);
+                const memberAlreadyExists = await pagePropModel.getMemberByUserId(userId, pagePropertyId);
+                
+                if(memberAlreadyExists) throw new Error('Member already exists');
+                else {
+                    const member = await pagePropModel.addMember(userId, isAdmin, pagePropertyId);
 
-                return reply.send({ member, status: HTTP_STATUS.OK });
+                    return reply.send({ member, status: HTTP_STATUS.OK });
+                }
             } else throw new Error('User not found');
-        } catch (error) {
+        } catch (error:any) {
             console.log(error);
-            return reply.send({ status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+            return reply.send({ message: error.message, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
 }

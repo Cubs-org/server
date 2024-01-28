@@ -14,6 +14,9 @@ export async function pageRoute(app: FastifyInstance) {
     // Get all pages from a user
     app.get('/pages/:userId', pageController.getAllPagesFromUser);
 
+    // Update a page
+    app.post('/updatePage/:pageId', pageController.update);
+
     // create a new page property
     app.post('/createPageProperty', pagePropertyController.create);
 

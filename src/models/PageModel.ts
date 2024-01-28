@@ -12,13 +12,29 @@ class PageModel {
         return page;
     }
 
-    async update(pageId: string, data: any) {
+    async update(pageId: string, title?: string, description?: string) {
+
+        let pageData;
+
+        if (title !== undefined) {
+            pageData = {
+                title: title
+            }
+        }
+
+        if (description !== undefined) {
+            pageData = {
+                ...pageData,
+                description
+            }
+        }
+
         const page = await prisma.page.update({
             where: {
                 id: pageId
             },
             data: {
-                ...data
+                ...pageData
             }
         });
         return page;

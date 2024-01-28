@@ -99,19 +99,20 @@ model User {
 }
 
 model Workspace {
-  id       String @id @default(uuid())
-  kanbanId String @map("kanban_id")
-  userId   String @unique @map("user_id")
+  id         String @id @default(uuid())
+  databaseId String @map("wkspdb_id")
+  userId     String @unique @map("user_id")
 
   user     User    @relation(fields: [userId], references: [id])
-  database DataHub @relation(fields: [kanbanId], references: [id])
+  database DataHub @relation(fields: [databaseId], references: [id])
 }
 
 model Page {
-  id      String   @id @default(uuid())
-  title   String
-  ownerId String   @map("owner_id")
-  trash   Boolean? @default(false)
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.LongText
+  ownerId     String   @map("owner_id")
+  trash       Boolean? @default(false)
 
   pageProperties PageProperties[]
   owner          User             @relation(fields: [ownerId], references: [id])
@@ -134,7 +135,7 @@ model DataHub {
 model PageProperties {
   id    String         @id @default(uuid())
   type  PagePropsTypes
-  title String
+  title String?
   data  Json?
   trash Boolean?       @default(false)
 

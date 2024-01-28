@@ -1,26 +1,8 @@
-import { JsonValue } from "@prisma/client/runtime/library";
 import PageModel from "../models/PageModel";
 import { HTTP_STATUS } from "../lib/http_status";
+import { Page, PageProperty } from "../types/pagesTypes";
 
 const pageModel = new PageModel();
-
-type PageProperty = {
-    id: string;
-    pageId: string;
-    title: string;
-    type: string;
-    data: JsonValue;
-    trash: boolean | null;
-}
-
-type Page = {
-    id: string;
-    title: string;
-    ownerId: string;
-    trash: boolean | null;
-    
-    properties?: PageProperty[];
-}
 
 class PageController {
 
@@ -28,19 +10,39 @@ class PageController {
 
         const { title, ownerId } = req.body;
 
-        const page = await pageModel.create(title, ownerId);
+        try {
+            if (!title && !ownerId) throw new Error('Missing parameters');
+            else {
 
-        reply.send({ page, status: HTTP_STATUS.OK });
+                const page = await pageModel.create(title, ownerId);
+
+                return reply.send({ page, status: HTTP_STATUS.OK });
+            }
+        } catch (error:any) {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", errorMessage);
+            return reply.send({ message: errorMessage, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+        }
     }
 
     async update(req, reply) {
 
         const { pageId } = req.params,
-            { title } = req.body;
+            { title, description } = req.body;
 
-        const page = await pageModel.update(pageId, { title });
+        try {
+            if (!pageId) throw new Error('Missing pageId parameter');
 
-        reply.send({ page, status: HTTP_STATUS.OK });
+            if (!title && !description) throw new Error('Missing parameters');
+
+            const page = await pageModel.update(pageId, title, description);
+
+            return reply.send({ page, status: HTTP_STATUS.OK });
+        } catch (error:any) {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", errorMessage);
+            return reply.send({ message: errorMessage, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+        }
     }
 
     async getAllPagesFromUser(req, reply) {
