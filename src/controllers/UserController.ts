@@ -16,57 +16,46 @@ class UserController {
     async create(req, reply) {
         const { name, password, email, access_token } = req.body;
     
-        if (!name || !email) {
-            return reply.send({
-                status: HTTP_STATUS.BAD_REQUEST,
-                message: 'Missing data',
-            });
-        }
-    
-        let passwordHash, pic;
-        pic = b.animals[Math.floor(Math.random() * b.animals.length)];
-        passwordHash = await hashPass(password);
-    
-        const data = {
-            name,
-            password: password ? passwordHash : null,
-            email,
-            icon: pic,
-            status: 'active',
-            accountType: 'free',
-            planType: 'perMonth',
-            paymentType: 'creditCard',
-        };
-    
-        if (!data.password && !access_token) {
-            return reply.send({
-                status: HTTP_STATUS.BAD_REQUEST,
-                message: 'Missing password or access_token'
-            });
-        } else if (access_token) {
-            const isValidToken = await fetchOAuth(access_token);
-    
-            if (!isValidToken) {
-                return reply.send({
-                    status: HTTP_STATUS.BAD_REQUEST,
-                    message: 'Invalid access_token',
-                });
-            } else {
-                const { name, email, picture } = isValidToken;
-                data.name = name;
-                data.email = email;
-                data.icon = picture;
-            }
-        }
-    
         try {
+            if (!name || !email) {
+                throw new Error('Missing data');
+            }
+        
+            let passwordHash, pic;
+            pic = b.animals[Math.floor(Math.random() * b.animals.length)];
+            passwordHash = await hashPass(password);
+        
+            const data = {
+                name,
+                password: password ? passwordHash : null,
+                email,
+                icon: pic,
+                status: 'active',
+                accountType: 'free',
+                planType: 'perMonth',
+                paymentType: 'creditCard',
+            };
+        
+            if (!data.password && !access_token) {
+                throw new Error('Missing password or access_token');
+            } else if (access_token) {
+                const isValidToken = await fetchOAuth(access_token);
+        
+                if (!isValidToken) {
+                    throw new Error('Invalid OAuthToken');
+                } else {
+                    const { name, email, picture } = isValidToken;
+                    data.name = name;
+                    data.email = email;
+                    data.icon = picture;
+                }
+            }
+    
+        
             const userAlreadyExists = await userModel.getByEmail(email);
     
             if (userAlreadyExists) {
-                return reply.send({
-                    status: HTTP_STATUS.CONFLICT,
-                    message: 'User already exists',
-                });
+                throw new Error('User already exists');
             }
     
             const user = await userModel.create(data);
@@ -82,9 +71,11 @@ class UserController {
                 },
             });
         } catch (error) {
-            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", errorMessage);
+            return reply.send({
                 status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-                message: 'Internal server error',
+                message: errorMessage
             });
         }
     }
