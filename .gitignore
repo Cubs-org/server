@@ -1,7 +1,6 @@
-node_modules
+/node_modules
 # Keep environment variables out of version control
 .env
-.env.*
 # Files that might appear on external volumes
-public/uploads
-prisma/migrations/
+/public/uploads
+/prisma/migrations/
