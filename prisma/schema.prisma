@@ -66,12 +66,14 @@ enum PagePropsTypes {
   selection
   multi_selection
   number
-  date
+  datetime
   formula
   relation
   rollup
   assign
   checkbox
+  status
+  calendar
 }
 
 // Tables
@@ -96,6 +98,8 @@ model User {
   workspace Workspace[]
   member    Member[]
   chat      Chat[]
+
+  @@map("user")
 }
 
 model Workspace {
@@ -105,19 +109,22 @@ model Workspace {
 
   user     User    @relation(fields: [userId], references: [id])
   database DataHub @relation(fields: [databaseId], references: [id])
+
+  @@map("workspace")
 }
 
 model Page {
-  id          String   @id @default(uuid())
-  title       String
-  description String?  @db.LongText
-  ownerId     String   @map("owner_id")
-  trash       Boolean? @default(false)
+  id      String   @id @default(uuid())
+  title   String
+  ownerId String   @map("owner_id")
+  trash   Boolean? @default(false)
 
   pageProperties PageProperties[]
   owner          User             @relation(fields: [ownerId], references: [id])
   tool           Tool[]
   chat           Chat[]
+
+  @@map("page")
 }
 
 model DataHub {
@@ -155,6 +162,8 @@ model Member {
 
   user           User           @relation(fields: [userId], references: [id])
   pageProperties PageProperties @relation(fields: [pagePropertiesId], references: [id])
+
+  @@map("member")
 }
 
 model Chat {
@@ -166,6 +175,8 @@ model Chat {
 
   user User @relation(fields: [userId], references: [id])
   page Page @relation(fields: [pageId], references: [id])
+
+  @@map("chat")
 }
 
 model Tool {
@@ -177,12 +188,16 @@ model Tool {
   pageId String
 
   page Page @relation(fields: [pageId], references: [id])
+
+  @@map("tool")
 }
 
 model Media {
   id      String     @id @default(uuid())
   type    MediaTypes
   content Bytes      @db.LongBlob
+
+  @@map("media")
 }
 
 model EmbedByLink {
@@ -210,6 +225,8 @@ model CheckList {
 model Table {
   id   String @id @default(uuid())
   data Json
+
+  @@map("table")
 }
 
 model Kanban {
@@ -220,6 +237,8 @@ model Kanban {
   databaseId String @map("database_id")
 
   database DataHub @relation(fields: [databaseId], references: [id])
+
+  @@map("kanban")
 }
 
 model Goal {
@@ -230,4 +249,6 @@ model Goal {
   databaseId String @map("database_id")
 
   database DataHub @relation(fields: [databaseId], references: [id])
+
+  @@map("goal")
 }

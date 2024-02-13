@@ -28,14 +28,14 @@ class PageController {
     async update(req, reply) {
 
         const { pageId } = req.params,
-            { title, description } = req.body;
+            { title } = req.body;
 
         try {
             if (!pageId) throw new Error('Missing pageId parameter');
 
-            if (!title && !description) throw new Error('Missing parameters');
+            if (!title) throw new Error('Missing parameters');
 
-            const page = await pageModel.update(pageId, title, description);
+            const page = await pageModel.update(pageId, title);
 
             return reply.send({ page, status: HTTP_STATUS.OK });
         } catch (error:any) {

@@ -12,20 +12,13 @@ class PageModel {
         return page;
     }
 
-    async update(pageId: string, title?: string, description?: string) {
+    async update(pageId: string, title?: string) {
 
         let pageData;
 
         if (title !== undefined) {
             pageData = {
                 title: title
-            }
-        }
-
-        if (description !== undefined) {
-            pageData = {
-                ...pageData,
-                description
             }
         }
 
