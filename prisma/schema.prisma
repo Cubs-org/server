@@ -10,9 +10,8 @@ datasource db {
 
 enum AccountType {
   free
-  plus
-  business
-  enterprise
+  base
+  pro
 }
 
 enum PlanType {
@@ -63,16 +62,18 @@ enum EmbedTypes {
 
 enum PagePropsTypes {
   text
-  selection
-  multi_selection
   number
   datetime
+  currency
   formula
+  selection
+  multi_selection
   relation
   rollup
   assign
   checkbox
   status
+  button
   calendar
 }
 
@@ -190,6 +191,15 @@ model Tool {
   page Page @relation(fields: [pageId], references: [id])
 
   @@map("tool")
+}
+
+model Button {
+  id    String   @id @default(uuid())
+  title String
+  data  Json? // { icon: "", action: "openPage", pageId: "123"}, { icon: "", action: "setStatus", status: "done"} ...
+  trash Boolean? @default(false)
+
+  @@map("button")
 }
 
 model Media {
