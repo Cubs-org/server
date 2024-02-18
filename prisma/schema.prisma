@@ -64,7 +64,6 @@ enum PagePropsTypes {
   text
   number
   datetime
-  currency
   formula
   selection
   multi_selection

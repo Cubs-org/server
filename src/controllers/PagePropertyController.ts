@@ -17,15 +17,21 @@ class PagePropertyController {
 
         try {
 
+            let _data = {...data, loadOrder: 0};
+            const getAllProperties = await pagePropModel.getPropertiesByPage(pageId);
+            if (getAllProperties.length > 0) {
+                _data.loadOrder = (getAllProperties.length);
+            }
+
             let pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage = await pagePropModel.getPropertiesByPage(pageId),
                 pageProperty =  {} as PageProperty;
 
             if (pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage.filter(pgProp => pgProp.title === title).length > 0)
             {
                 const newTitle = `${title} (${pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage.length})`;
-                pageProperty = await pagePropModel.create(newTitle, type, data, pageId);
+                pageProperty = await pagePropModel.create(newTitle, type, _data, pageId);
             } else {
-                pageProperty = await pagePropModel.create(title, type, data, pageId);
+                pageProperty = await pagePropModel.create(title, type, _data, pageId);
             }
 
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
