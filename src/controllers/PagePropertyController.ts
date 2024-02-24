@@ -63,6 +63,22 @@ class PagePropertyController {
             return reply.send({ message: error.message, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
+
+    async update(req, reply) {
+            
+        const { id, data, title } = req.body;
+    
+        try {
+            let pageProperty:PageProperty;
+            if (!title) pageProperty = await pagePropModel.update(id, data);
+            else pageProperty = await pagePropModel.update(id, data, title);
+    
+            return reply.send({ pageProperty, status: HTTP_STATUS.OK });
+        } catch (error) {
+            console.log(error);
+            return reply.send({ message: error, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+        }
+    }
 }
 
 export default PagePropertyController;

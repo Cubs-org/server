@@ -64,6 +64,15 @@ class PageModel {
         });
         return properties;
     }
+
+    async delete(id: string) {
+        const page = await prisma.page.delete({
+            where: {
+                id: id
+            }
+        });
+        return page;
+    }
 }
 
 export default PageModel;

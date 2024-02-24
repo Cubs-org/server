@@ -14,6 +14,21 @@ class PagePropertyModel {
         });
         return pageProperty;
     }
+    
+    async update(pagePropertyId: string, data: any, title?:string) {
+        let dataToUpdate:{data:any, title?:string} = { data: data };
+        if (title) {
+            dataToUpdate = { ...dataToUpdate, title: title };
+        }
+
+        const pageProperty = await prisma.pageProperties.update({
+            where: {
+                id: pagePropertyId
+            },
+            data: dataToUpdate
+        });
+        return pageProperty;
+    }
 
     async getPropertiesByPage(pageId: string) {
         const pageProperties = await prisma.pageProperties.findMany({
@@ -52,6 +67,15 @@ class PagePropertyModel {
             }
         });
         return members;
+    }
+
+    async deleteAll(pageId: string) {
+        const pageProperties = await prisma.pageProperties.deleteMany({
+            where: {
+                pageId: pageId
+            }
+        });
+        return pageProperties;
     }
 }
 

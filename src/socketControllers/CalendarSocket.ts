@@ -13,15 +13,18 @@ class CalendarSocket {
     async createNewItem(socket: Socket) {
 
         socket.on('createNewItem', async (req) => {
-            const { title, owner, type, description, start, end, color } = req;
+            const { title, owner, type, content, start, end, color } = req;
 
-            const currentDate = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }).replace(', ', ' ').concat(".000");
+            const currentDate = new Date();
+            currentDate.setUTCHours(0, 0, 0, 0);
+            currentDate.setUTCHours(0, 0, 0, 0);
+            currentDate.setUTCHours(0, 0, 0, 0);
 
             const newItem = {
                 owner,
                 type: type || "task",
                 title: title || "",
-                description: description || "",
+                description: content || "",
                 start: start || currentDate,
                 end: end || currentDate,
                 color: color || "purple",
@@ -76,7 +79,6 @@ class CalendarSocket {
             console.log("Message:", errorMessage);
         }
     }
-    
 
     async getCalendarItems(socket: Socket) {
         socket.on('getCalendarItems', async (req) => {
@@ -84,6 +86,75 @@ class CalendarSocket {
             const user = await userModel.getByEmail(email);
             if (user) {
                 this.emitCalendarItems(socket, user.id);
+            }
+        });
+    }
+
+    async updateItem(socket: Socket) {
+        socket.on('updateItem', async (req) => {
+            const { id, title, content, start, end, color, completed } = req;
+
+            try {
+                let item = await pageModel.getPageById(id);
+                if (!item) throw new Error('Item not found');
+                else {
+                    if (title)
+                        await pageModel.update(id, title); // Atualiza o título do item
+
+                    let properties:PageProperty[] = await pagePropertyModel.getPropertiesByPage(item.id);
+
+                    if (properties) {
+                        let descData = properties?.find(prop => prop.title === "Descrição") as PageProperty;
+                        let datetimeData = properties?.find(prop => prop.title === "Data") as PageProperty;
+                        let calendarData = properties?.find(prop => prop.type === "calendar") as PageProperty;
+                        let statusData = properties?.find(prop => prop.title === "status") as PageProperty;
+
+                        if (content) {
+                            let { value } = descData?.data as { value: string };
+                            if (value !== content)
+                                await pagePropertyModel.update(descData?.id, { value: content });
+                        }
+                        if (start && end) {
+                            let { start: oldStart, end: oldEnd } = datetimeData?.data as { start: string, end: string };
+                            if (oldStart !== start || oldEnd !== end)
+                                await pagePropertyModel.update(datetimeData?.id, { start, end });
+                        }
+                        if (color) {
+                            let { color: oldColor } = calendarData?.data as { color: string };
+                            if (oldColor !== color)
+                                await pagePropertyModel.update(calendarData?.id, { color });
+                        }
+                        if (completed) {
+                            let { value: oldCompleted } = statusData?.data as { value: boolean };
+                            if (oldCompleted !== completed)
+                                await pagePropertyModel.update(statusData?.id, { value: completed === 'on' ? true : false });
+                        }                        
+                    }
+                }
+                this.emitCalendarItems(socket, item.ownerId);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+                console.log("Message:", errorMessage);
+            }
+        });
+    }
+
+    async deleteItem(socket: Socket) {
+        socket.on('deleteItem', async (req) => {
+            const { id } = req;
+            try {
+                let item = await pageModel.getPageById(id);
+                if (!item) throw new Error('Item not found');
+                else {
+                    const properties = await pagePropertyModel.getPropertiesByPage(item.id);
+                    if (properties)
+                        await pagePropertyModel.deleteAll(item.id);
+                }
+                await pageModel.delete(item.id);
+                this.emitCalendarItems(socket, item.ownerId);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+                console.log("Message:", errorMessage);
             }
         });
     }

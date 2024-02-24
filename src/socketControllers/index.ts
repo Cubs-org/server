@@ -12,6 +12,8 @@ function socketController (fastify:FastifyInstance) {
 
     calendarSocket.createNewItem(socket);
     calendarSocket.getCalendarItems(socket);
+    calendarSocket.updateItem(socket);
+    calendarSocket.deleteItem(socket);
 
     socket.on('disconnect', () => console.log('disconnected'));
   });
