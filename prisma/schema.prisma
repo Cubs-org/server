@@ -116,13 +116,16 @@ model Workspace {
 model Page {
   id        String   @id @default(uuid())
   title     String
+  data      Json?
   ownerId   String   @map("owner_id")
+  datahubId String?  @map("datahub_id")
   trash     Boolean? @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   pageProperties PageProperties[]
   owner          User             @relation(fields: [ownerId], references: [id])
+  datahub        DataHub?         @relation(fields: [datahubId], references: [id])
   tool           Tool[]
   chat           Chat[]
 
@@ -135,6 +138,7 @@ model DataHub {
   trash Boolean? @default(false)
 
   Workspace Workspace[]
+  Page      Page[]
   Kanban    Kanban[]
   Goal      Goal[]
 

@@ -124,10 +124,12 @@ class CalendarSocket {
                             if (oldColor !== color)
                                 await pagePropertyModel.update(calendarData?.id, { color });
                         }
-                        if (completed) {
+                        if (completed !== undefined) {
                             let { value: oldCompleted } = statusData?.data as { value: boolean };
+                            console.log("oldCompleted:", oldCompleted);
+                            console.log("completed:", completed);
                             if (oldCompleted !== completed)
-                                await pagePropertyModel.update(statusData?.id, { value: completed === 'on' ? true : false });
+                                await pagePropertyModel.update(statusData?.id, { value: completed });
                         }                        
                     }
                 }
