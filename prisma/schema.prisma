@@ -135,6 +135,7 @@ model Page {
 model DataHub {
   id    String   @id @default(uuid())
   title String?
+  data  Json?
   trash Boolean? @default(false)
 
   Workspace Workspace[]
