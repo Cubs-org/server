@@ -11,7 +11,7 @@ class PagePropertyModel {
                 data: data,
                 pageId: pageId
             }
-        });
+        }) as PageProperty;
         return pageProperty;
     }
     
@@ -27,6 +27,15 @@ class PagePropertyModel {
             },
             data: dataToUpdate
         });
+        return pageProperty;
+    }
+
+    async getPropertyById(pagePropertyId: string):Promise<PageProperty> {
+        const pageProperty = await prisma.pageProperties.findFirst({
+            where: {
+                id: pagePropertyId
+            }
+        }) as PageProperty;
         return pageProperty;
     }
 

@@ -56,7 +56,7 @@ class PageController {
 
             for (let page of pagesFromOwner) {
 
-                const pageProperties: PageProperty[] = await pageModel.getPropertiesByPage(page.id);
+                const pageProperties: PageProperty[] = await pageModel.getPropertiesByPage(page.id) as PageProperty[];
                 
                 if (pageProperties.length > 0) {
                     pages.push({

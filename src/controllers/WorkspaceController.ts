@@ -31,6 +31,19 @@ class WorkspaceController {
             return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ error: 'Internal Server Error' });
         }
     }
+
+    async getDataHubId(req, reply) {
+        const { workspaceId } = req.query;
+
+        try {
+            const dataHubId = await workspaceModel.getDatabaseId(workspaceId);
+
+            return reply.send({ dataHubId, status: HTTP_STATUS.OK });
+        } catch (error) {
+            console.error('Error:', error);
+            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ error: 'Internal Server Error' });
+        }
+    }
 }
 
 export default WorkspaceController;

@@ -70,8 +70,8 @@ class PagePropertyController {
     
         try {
             let pageProperty:PageProperty;
-            if (!title) pageProperty = await pagePropModel.update(id, data);
-            else pageProperty = await pagePropModel.update(id, data, title);
+            if (!title) pageProperty = await pagePropModel.update(id, data) as PageProperty;
+            else pageProperty = await pagePropModel.update(id, data, title) as PageProperty;
     
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
         } catch (error) {

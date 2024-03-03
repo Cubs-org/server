@@ -2,12 +2,25 @@ import { prisma } from "../database/prisma-client";
 
 class PageModel {
 
-    async create(pageName: string, ownerId: string) {
-        const page = await prisma.page.create({
-            data: {
+    async create(pageName: string, ownerId: string, dataHubId?: string) {
+
+        let pageData;
+
+        if (!dataHubId) {
+            pageData = {
                 title: pageName,
                 ownerId: ownerId
             }
+        } else {
+            pageData = {
+                title: pageName,
+                ownerId: ownerId,
+                datahubId: dataHubId
+            }
+        }
+
+        const page = await prisma.page.create({
+            data: pageData
         });
         return page;
     }

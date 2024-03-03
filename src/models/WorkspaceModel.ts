@@ -34,13 +34,25 @@ class WorkspaceModel {
             }
         });
 
-        const databaseDeleted = await prisma.dataHub.delete({
+        await prisma.dataHub.delete({
             where: {
                 id: workspaceDeleted.databaseId
             }
         });
 
         return workspaceDeleted;
+    }
+
+    async getDatabaseId(workspaceId: string) {
+        const workspace = await prisma.workspace.findUnique({
+            where: {
+                id: workspaceId
+            }
+        });
+
+        if (!workspace) throw new Error("Workspace not found");
+
+        return workspace.databaseId;
     }
 }
  export default WorkspaceModel;

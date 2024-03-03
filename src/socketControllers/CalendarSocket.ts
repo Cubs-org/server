@@ -67,7 +67,7 @@ class CalendarSocket {
         try {
             let items:Page[] = await pageModel.getPagesByOwner(userId);
             for (const item of items) {
-                item.properties = await pagePropertyModel.getPropertiesByPage(item.id);
+                item.properties = await pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
                 // console.log("Item:", item);
             }
     
@@ -101,7 +101,7 @@ class CalendarSocket {
                     if (title)
                         await pageModel.update(id, title); // Atualiza o título do item
 
-                    let properties:PageProperty[] = await pagePropertyModel.getPropertiesByPage(item.id);
+                    let properties:PageProperty[] = await pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
 
                     if (properties) {
                         let descData = properties?.find(prop => prop.title === "Descrição") as PageProperty;
