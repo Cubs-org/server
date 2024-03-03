@@ -26,22 +26,20 @@ class DatahubSocket extends DatahubModel {
             socket.on('moveColumn', async (req) => {
                 
                 const { 
-                    targetColumnId, targetColumnOrder,
-                    draggedColumnId, draggedColumnOrder
+                    targetColumnTitle, targetColumnOrder,
+                    draggedColumnTitle, draggedColumnOrder
                 } = req;
 
-                const targetColumn = await this.setColumnOrder(targetColumnId, draggedColumnOrder) as PageProperty;
-                const draggedColumn = await this.setColumnOrder(draggedColumnId, targetColumnOrder) as PageProperty;
+                if (targetColumnOrder === draggedColumnOrder || 
+                    !targetColumnTitle || !draggedColumnTitle
+                    ) return;
+                else if (targetColumnOrder < 0 || draggedColumnOrder < 0) return;
 
+                const datahubId = await this.setColumnOrder(targetColumnTitle, draggedColumnTitle, targetColumnOrder, draggedColumnOrder);
 
-                if (!targetColumn) throw new Error("Target column not found");
-                if (!draggedColumn) throw new Error("Dragged column not found");
+                const pages = await this.getAllPagesFromHub(datahubId);
 
-                socket.emit('columnMoved', {
-                    pageId: targetColumn.pageId,
-                    id: targetColumn.id,
-                    data: targetColumn.data
-                });
+                socket.emit('columnMoved', pages);
 
             });
         } catch (error) {

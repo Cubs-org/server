@@ -18,6 +18,7 @@ function socketController (fastify:FastifyInstance) {
     calendarSocket.deleteItem(socket);
 
     datahubSocket.getItems(socket);
+    datahubSocket.moveColumn(socket);
 
     socket.on('disconnect', () => console.log('disconnected'));
   });

@@ -45,15 +45,67 @@ class DatahubModel extends PagePropertiesModel {
         return pagesWithProperties;
     }
 
-    async setColumnOrder(columnId: string, newIndex: number) {
-        const property: PageProperty = await this.getPropertyById(columnId);
-        if (!property) throw new Error("Column not found");
+    async setColumnOrder(targetTitle: string, draggedtTitle: string, targetOrder:number, draggedOrder:number) {
 
-        let data = property.data;
-        data.loadOrder = newIndex;
+        let datahubId;
 
-        const updatedProperty = await this.update(columnId, data);
-        return updatedProperty;
+        let targetCols = await prisma.pageProperties.findMany({
+            where: {
+                title: targetTitle
+            }
+        }) as PageProperty[];
+
+        let draggedCols = await prisma.pageProperties.findMany({
+            where: {
+                title: draggedtTitle
+            }
+        }) as PageProperty[];
+
+        // // if (!targetCol || !draggedCol) throw new Error("Columns not found");
+        
+        // let newTargetData = (targetCols[0].data as any);
+        // newTargetData.loadOrder = draggedOrder;
+        
+        // let newDraggedData = (draggedCols[0].data as any);
+        // newDraggedData.loadOrder = targetOrder;
+
+        targetCols.forEach(async (targetCol) => {
+            let newTargetData = (targetCol.data as any);
+            newTargetData.loadOrder = draggedOrder;
+            await prisma.pageProperties.update({
+                where: {
+                    title: targetTitle,
+                    id: targetCol.id
+                },
+                data: {
+                    data: newTargetData,
+                }
+            });
+        });
+
+        draggedCols.forEach(async (draggedCol) => {
+            let newDraggedData = (draggedCol.data as any);
+            newDraggedData.loadOrder = targetOrder;
+            await prisma.pageProperties.update({
+                where: {
+                    title: draggedtTitle,
+                    id: draggedCol.id
+                },
+                data: {
+                    data: newDraggedData,
+                }
+            });
+        });
+
+        await prisma.page.findFirst({
+            where: {
+                id: targetCols[0].pageId
+            }
+        }).then((page) => {
+            datahubId = page?.datahubId;
+        });
+
+        return datahubId;
     }
 }
 

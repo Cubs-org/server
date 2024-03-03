@@ -44,7 +44,8 @@ class PagePropertyModel {
             where: {
                 pageId: pageId
             }
-        });
+        }) as PageProperty[];
+
         return pageProperties;
     }
 
