@@ -19,10 +19,10 @@ export const setDefaultValuesFromPageProperty = (pageProperties: PageProperty) =
         case 'checkbox':
             title = 'Caixa de seleção';
             break;
-        case 'select':
+        case 'selection':
             title = 'Seleção';
             break;
-        case 'multiselect':
+        case 'multi-selection':
             title = 'Multi-seleção';
             break;
         case 'relation':

@@ -20,7 +20,7 @@ class PageController {
             }
         } catch (error:any) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-            console.log("Message:", errorMessage);
+            console.error("Message:", errorMessage);
             return reply.send({ message: errorMessage, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
@@ -40,7 +40,7 @@ class PageController {
             return reply.send({ page, status: HTTP_STATUS.OK });
         } catch (error:any) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-            console.log("Message:", errorMessage);
+            console.error("Message:", errorMessage);
             return reply.send({ message: errorMessage, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }

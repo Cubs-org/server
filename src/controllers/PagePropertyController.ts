@@ -36,7 +36,7 @@ class PagePropertyController {
 
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return reply.send({ message: error, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
@@ -59,7 +59,7 @@ class PagePropertyController {
                 }
             } else throw new Error('User not found');
         } catch (error:any) {
-            console.log(error);
+            console.error(error);
             return reply.send({ message: error.message, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
@@ -75,7 +75,7 @@ class PagePropertyController {
     
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return reply.send({ message: error, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }

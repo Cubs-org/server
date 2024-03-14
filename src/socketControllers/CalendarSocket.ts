@@ -64,16 +64,22 @@ class CalendarSocket {
     }
 
     async emitCalendarItems(socket: Socket, userId: string) {
+
+        let _items:Page[];
+        
         try {
             let items:Page[] = await pageModel.getPagesByOwner(userId);
             for (const item of items) {
                 item.properties = await pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
-                // console.log("Item:", item);
             }
+
+            if (!items) throw new Error('Error getting items');
+            else if (items.length === 0) throw new Error('No items found');
+
+            _items = items.filter(item => item?.properties && item?.properties.find(prop => prop.type === "calendar"));
+
     
-            // console.log("Items:", items);
-    
-            socket.emit('getCalendarItems', items);
+            socket.emit('getCalendarItems', _items);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
             console.log("Message:", errorMessage);
@@ -126,8 +132,6 @@ class CalendarSocket {
                         }
                         if (completed !== undefined) {
                             let { value: oldCompleted } = statusData?.data as { value: boolean };
-                            console.log("oldCompleted:", oldCompleted);
-                            console.log("completed:", completed);
                             if (oldCompleted !== completed)
                                 await pagePropertyModel.update(statusData?.id, { value: completed });
                         }                        
