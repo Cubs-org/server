@@ -8,13 +8,15 @@ class PageController {
 
     async create(req, reply) {
 
-        const { title, ownerId } = req.body;
+        const { title, ownerId, datahubId } = req.body;
 
         try {
             if (!title && !ownerId) throw new Error('Missing parameters');
             else {
 
-                const page = await pageModel.create(title, ownerId);
+                let page:Page;
+                if (datahubId) page = await pageModel.create(title, ownerId, datahubId);
+                else page = await pageModel.create(title, ownerId);
 
                 return reply.send({ page, status: HTTP_STATUS.OK });
             }

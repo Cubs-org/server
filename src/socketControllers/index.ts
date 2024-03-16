@@ -19,6 +19,7 @@ function socketController (fastify:FastifyInstance) {
 
     datahubSocket.getItems(socket);
     datahubSocket.moveColumn(socket);
+    datahubSocket.resizeColumn(socket);
 
     socket.on('disconnect', () => console.log('disconnected'));
   });

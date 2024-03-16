@@ -4,6 +4,8 @@ import { PageProperty } from "../types/pagesTypes";
 
 class DatahubSocket extends DatahubModel {
 
+    /* TableView - SocketControllers */
+    // Get Items from Datahub
     async getItems(socket: Socket) {
 
         try {
@@ -18,8 +20,33 @@ class DatahubSocket extends DatahubModel {
     }
 
     /* TableView - SocketControllers */
-    async resizeColumn(socket: Socket) {}
+    // Resize Column
+    async resizeColumn(socket: Socket) {
 
+        try {
+
+            socket.on('resizeColumn', async (req) => {
+                const { columnTitle, newWidth } = req;
+                console.log('resizeColumn:', columnTitle, newWidth);
+                const datahubId = await this.setColumnWidth(columnTitle, newWidth);
+                
+                let pages = await this.getAllPagesFromHub(datahubId);
+
+                pages.map(page => {
+                    (page.properties ?? []).forEach((property: PageProperty) => {
+                        if (property.title === columnTitle)
+                            property.data.width = newWidth;
+                    });
+                });
+
+                socket.broadcast.emit('columnResized', pages);
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    // Move Column
     async moveColumn(socket: Socket) {
 
         try {
@@ -37,9 +64,19 @@ class DatahubSocket extends DatahubModel {
 
                 const datahubId = await this.setColumnOrder(targetColumnTitle, draggedColumnTitle, targetColumnOrder, draggedColumnOrder);
 
-                const pages = await this.getAllPagesFromHub(datahubId);
+                let pages = await this.getAllPagesFromHub(datahubId);
 
-                socket.emit('columnMoved', pages);
+                pages.map(page => {
+                    (page.properties ?? []).forEach((property: PageProperty) => {
+                        if (property.title === targetColumnTitle)
+                            property.data.loadOrder = draggedColumnOrder;
+                        if (property.title === draggedColumnTitle)
+                            property.data.loadOrder = targetColumnOrder;
+                    });
+                });
+
+
+                socket.broadcast.emit('columnMoved', pages);
 
             });
         } catch (error) {

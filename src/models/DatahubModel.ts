@@ -107,6 +107,41 @@ class DatahubModel extends PagePropertiesModel {
 
         return datahubId;
     }
+
+    async setColumnWidth(columnTitle: string, newWidth: number) {
+
+        let datahubId,
+            columns = await prisma.pageProperties.findMany({
+                where: {
+                    title: columnTitle
+                }
+            }) as PageProperty[];
+
+        columns.forEach(async (col) => {
+            let newColData = (col.data as any);
+            newColData.width = newWidth;
+            await prisma.pageProperties.update({
+                where: {
+                    title: columnTitle,
+                    id: col.id
+                },
+                data: {
+                    data: newColData,
+                }
+            });
+        });
+
+        await prisma.page.findFirst({
+            where: {
+                id: columns[0]?.pageId
+            }
+        }).then((page) => {
+            datahubId = page?.datahubId;
+        });
+
+        return datahubId;
+    }
+
 }
 
 export default DatahubModel;
