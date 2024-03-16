@@ -27,7 +27,6 @@ class DatahubSocket extends DatahubModel {
 
             socket.on('resizeColumn', async (req) => {
                 const { columnTitle, newWidth } = req;
-                console.log('resizeColumn:', columnTitle, newWidth);
                 const datahubId = await this.setColumnWidth(columnTitle, newWidth);
                 
                 let pages = await this.getAllPagesFromHub(datahubId);

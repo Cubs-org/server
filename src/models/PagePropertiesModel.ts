@@ -79,10 +79,11 @@ class PagePropertyModel {
         return members;
     }
 
-    async deleteAll(pageId: string) {
-        const pageProperties = await prisma.pageProperties.deleteMany({
+    async delete(id: string) {
+
+        const pageProperties = await prisma.pageProperties.delete({
             where: {
-                pageId: pageId
+                id: id
             }
         });
         return pageProperties;

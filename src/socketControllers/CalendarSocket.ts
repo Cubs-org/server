@@ -79,7 +79,7 @@ class CalendarSocket {
             _items = items.filter(item => item?.properties && item?.properties.find(prop => prop.type === "calendar"));
 
     
-            socket.emit('getCalendarItems', _items);
+            socket.broadcast.emit('updateItems', _items);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
             console.log("Message:", errorMessage);
@@ -148,15 +148,20 @@ class CalendarSocket {
     async deleteItem(socket: Socket) {
         socket.on('deleteItem', async (req) => {
             const { id } = req;
+
             try {
                 let item = await pageModel.getPageById(id);
                 if (!item) throw new Error('Item not found');
                 else {
-                    const properties = await pagePropertyModel.getPropertiesByPage(item.id);
-                    if (properties)
-                        await pagePropertyModel.deleteAll(item.id);
+                    const propertiesFromPage = await pagePropertyModel.getPropertiesByPage(item.id);
+                    if (propertiesFromPage.length > 0) {
+                        for (const prop of propertiesFromPage)
+                            await pagePropertyModel.delete(prop.id);
+                    }
+
+                    if (item)
+                        await pageModel.delete(item.id);
                 }
-                await pageModel.delete(item.id);
                 this.emitCalendarItems(socket, item.ownerId);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';

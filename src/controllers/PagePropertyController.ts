@@ -20,7 +20,7 @@ class PagePropertyController {
             let _data = {...data, loadOrder: 0};
             const getAllProperties = await pagePropModel.getPropertiesByPage(pageId);
             if (getAllProperties.length > 0) {
-                _data.loadOrder = (getAllProperties.length);
+                _data.loadOrder = (getAllProperties.length + 1);
             }
 
             let pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage = await pagePropModel.getPropertiesByPage(pageId),
