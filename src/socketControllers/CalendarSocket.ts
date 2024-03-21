@@ -51,7 +51,7 @@ class CalendarSocket {
 
                     if (!item) throw new Error('Error creating new item');
                     
-                    socket.emit('get', item);
+                    socket.emit('updatedCalendarItems', item);
 
                     // Após criar o novo item, emitir todos os itens do calendário vinculados a este usuário
                     this.emitCalendarItems(socket, user.id);
@@ -91,6 +91,7 @@ class CalendarSocket {
             const { email } = req;
             const user = await userModel.getByEmail(email);
             if (user) {
+                console.log("User:", user);
                 this.emitCalendarItems(socket, user.id);
             }
         });
