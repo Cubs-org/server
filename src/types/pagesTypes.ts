@@ -1,6 +1,26 @@
 import { JsonValue } from "@prisma/client/runtime/library";
 
-type Data = {
+export type PagePropertyType = 
+| "text"
+| "number"
+| "datetime"
+| "formula"
+| "selection"
+| "multi_selection"
+| "relation"
+| "rollup"
+| "assign"
+| "checkbox"
+| "status"
+| "button"
+| "calendar";
+
+type Tags = {
+    name: string;
+    color: string;
+};
+
+export type Data = {
     value: string | number | boolean | null;
     loadOrder: number;
     icon?: string;
@@ -8,13 +28,15 @@ type Data = {
     start?: string;
     end?: string;
     color?: string;
+    items?: Tags[];
+    tags?: Tags[];
 } & JsonValue;
 
 export type PageProperty = {
     id: string;
     pageId: string;
-    title: string | null;
-    type: string;
+    title: string;
+    type: PagePropertyType;
     data: Data;
     trash: boolean | null;
 }

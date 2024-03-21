@@ -4,6 +4,20 @@ import { PageProperty } from "../types/pagesTypes";
 
 class DatahubSocket extends DatahubModel {
 
+    async createPage(socket: Socket) {
+            try {
+                socket.on('createPage', async (
+                    req:{ datahubId: string, ownerId: string }
+                ) => {
+                    const { datahubId, ownerId } = req;
+                    const newPage = await this.createPageInHub(datahubId, ownerId);
+                    socket.broadcast.emit('pageCreated', newPage);
+                });
+            } catch (error) {
+                console.log(error);
+            }
+    }
+
     /* TableView - SocketControllers */
     // Get Items from Datahub
     async getItems(socket: Socket) {

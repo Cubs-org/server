@@ -13,7 +13,7 @@ export const setDefaultValuesFromPageProperty = (pageProperties: PageProperty) =
         case 'number':
             title = 'Número';
             break;
-        case 'date':
+        case 'datetime':
             title = 'Data';
             break;
         case 'checkbox':
@@ -22,7 +22,7 @@ export const setDefaultValuesFromPageProperty = (pageProperties: PageProperty) =
         case 'selection':
             title = 'Seleção';
             break;
-        case 'multi-selection':
+        case 'multi_selection':
             title = 'Multi-seleção';
             break;
         case 'relation':

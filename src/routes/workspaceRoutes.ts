@@ -10,4 +10,7 @@ export async function workspaceRoute(app: FastifyInstance) {
 
     // Get DatahubId
     app.get('/workspace/datahub', workspaceController.getDataHubId);
+
+    // Create new page
+    app.post('/workspace/page', workspaceController.createNewPage);
 }

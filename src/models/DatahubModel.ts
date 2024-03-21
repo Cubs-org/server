@@ -1,6 +1,10 @@
 import { prisma } from "../database/prisma-client";
-import { PageProperty } from "../types/pagesTypes";
+import { Page, PageProperty } from "../types/pagesTypes";
+import setnewDataFromPageProp from "../utils/setDataFromPageProp";
 import PagePropertiesModel from "./PagePropertiesModel";
+import WorkspaceModel from "./WorkspaceModel";
+
+const wkspModel = new WorkspaceModel();
 
 class DatahubModel extends PagePropertiesModel {
 
@@ -140,6 +144,58 @@ class DatahubModel extends PagePropertiesModel {
         });
 
         return datahubId;
+    }
+
+    async createPageInHub(
+        workspaceId: string, 
+        ownerId: string
+    ): Promise<Page> {
+
+        const datahubId = await wkspModel.getDatabaseId(workspaceId);
+
+        let firstPageOfHub = await prisma.page.findFirst({
+            where: {
+                datahubId: datahubId
+            }
+        }) as Page;
+
+        if (!firstPageOfHub) {
+            firstPageOfHub = await prisma.page.create({
+                data: {
+                    datahubId: datahubId,
+                    title: "Nova Página",
+                    ownerId: ownerId
+                }
+            });
+        }
+
+        firstPageOfHub.properties = await this.getPropertiesByPage(firstPageOfHub.id) as PageProperty[];
+
+        let newPage = await prisma.page.create({
+            data: {
+                datahubId: datahubId,
+                title: "",
+                ownerId: firstPageOfHub.ownerId,
+                pageProperties: {
+                    createMany: {
+                        skipDuplicates: true,
+                        data: firstPageOfHub.properties.map((property) => {
+                            let newData = (property.data as any);
+                            newData = setnewDataFromPageProp(property.type, newData);
+                            return {
+                                title: property.title,
+                                type: property.type,
+                                data: newData
+                            };
+                        })
+                    }
+                }
+            }
+        }) as Page;
+
+        newPage.properties = await this.getPropertiesByPage(newPage.id) as PageProperty[];
+    
+        return newPage;
     }
 
 }
