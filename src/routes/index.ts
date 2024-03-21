@@ -1,16 +1,13 @@
-import { FastifyInstance } from "fastify";
-import { userRoute } from "./userRoutes";
-import { workspaceRoute } from "./workspaceRoutes";
-import { pageRoute } from "./pageRoutes";
+import { Router } from "express";
 
-export async function appRoutes(app: FastifyInstance) {
+import userRoute from "./userRoutes";
+import workspaceRoute from "./workspaceRoutes";
+import pageRoute from "./pageRoutes";
 
-    // user route
-    app.register(userRoute);
+const router = Router();
 
-    // workspace route
-    app.register(workspaceRoute);
+router.use("/user", userRoute);
+router.use("/workspace", workspaceRoute);
+router.use("/page", pageRoute);
 
-    // page route
-    app.register(pageRoute);
-}
+export default router;

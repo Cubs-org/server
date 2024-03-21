@@ -1,21 +1,14 @@
-import { FastifyInstance } from "fastify";
+import { Router } from "express";
 import UserController from "../controllers/UserController";
 
+const router = Router();
 const userController = new UserController();
 
-export async function userRoute(app: FastifyInstance) {
+router.post('/registerUser', userController.create);
+router.post('/authenticateUser', userController.authenticateUser);
+router.post('/authenticateUser/oauth', userController.authByGoogle);
+router.get('/getUser', userController.get);
+router.delete('/deleteUser', userController.setUserTrashedStatus);
+router.delete('/deleteUser/permanently', userController.delete);
 
-    // Create a new user
-    app.post('/registerUser', userController.create);
-
-    // Authenticate a user
-    app.post('/authenticateUser', userController.authenticateUser);
-    app.post('/authenticateUser/oauth', userController.authByGoogle);
-
-    // Get a user
-    app.get('/getUser', userController.get);
-
-    // Delete a user
-    app.delete('/deleteUser', userController.setUserTrashedStatus);
-    app.delete('/deleteUser/permanently', userController.delete);
-}
+export default router;

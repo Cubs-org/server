@@ -1,60 +1,28 @@
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import { appRoutes } from './routes';
-
-import SocketIO from 'socket.io';
+import express from 'express';
+import { createServer } from 'http';
+import cors from 'cors';
 import socketController from './socketControllers';
+import router from './routes';
+import { Server } from 'socket.io';
 
-// Load environment variables
 require('dotenv').config();
 
-// Create Fastify instance
-const fastify = Fastify();
-
-// Configure Fastify instance
-const HOST = process.env.HOST || '0.0.0.0';
-const PORT = Number(process.env.PORT || 3000);
-
-// Configure CORS
-fastify.register(cors, {
-    origin: '*',
-    methods: '*',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-});
-
-// Configure Socket.io
-fastify.register(require('fastify-socket.io'), {
+const app = express();
+const server = createServer(app);
+const io = new Server(server, {
   cors: {
     origin: '*',
-    methods: '*',
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-  }
+  },
 });
 
-// Routes
-fastify.register(appRoutes)
+const PORT = process.env.PORT || 3000;
 
-// SocketControllers 
-fastify.ready(err => {
-  try {
-    if (err) throw err;
+app.use(cors());
+app.use(express.json());
+app.use(router);
 
-    socketController(fastify);
-  } catch (err) {
-    console.error(err);
-  }
+socketController(io);
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Start server
-fastify.listen({ 
-  port: PORT, 
-  host: HOST 
-}).then(() => console.log(`Server is listening at http://localhost:${PORT}`));
-
-declare module 'fastify' {
-    interface FastifyInstance {
-        io: SocketIO.Server;
-    }
-}

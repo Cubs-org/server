@@ -1,25 +1,15 @@
-import { FastifyInstance } from "fastify";
-
+import { Router } from "express";
 import PageController from "../controllers/PageController";
 import PagePropertyController from "../controllers/PagePropertyController";
 
+const router = Router();
 const pageController = new PageController();
 const pagePropertyController = new PagePropertyController();
 
-export async function pageRoute(app: FastifyInstance) {
+router.post('/createPage', pageController.create);
+router.get('/:userId', pageController.getAllPagesFromUser);
+router.post('/updatePage/:pageId', pageController.update);
+router.post('/createPageProperty', pagePropertyController.create);
+router.post('/addMember', pagePropertyController.addMember);
 
-    // Create a new page
-    app.post('/createPage', pageController.create);
-
-    // Get all pages from a user
-    app.get('/pages/:userId', pageController.getAllPagesFromUser);
-
-    // Update a page
-    app.post('/updatePage/:pageId', pageController.update);
-
-    // create a new page property
-    app.post('/createPageProperty', pagePropertyController.create);
-
-    // add a member to a page
-    app.post('/addMember', pagePropertyController.addMember);
-}
+export default router;

@@ -1,16 +1,12 @@
-import { FastifyInstance } from "fastify";
+import { Router } from "express";
 import WorkspaceController from "../controllers/WorkspaceController";
 
+const router = Router();
 const workspaceController = new WorkspaceController();
 
-export async function workspaceRoute(app: FastifyInstance) {
+// Defina as rotas do workspace
+router.get('/:userId', workspaceController.getWorkspace);
+router.get('/datahub', workspaceController.getDataHubId);
+router.post('/page', workspaceController.createNewPage);
 
-    // Get a workspace
-    app.get('/workspace/:userId', workspaceController.getWorkspace);
-
-    // Get DatahubId
-    app.get('/workspace/datahub', workspaceController.getDataHubId);
-
-    // Create new page
-    app.post('/workspace/page', workspaceController.createNewPage);
-}
+export default router;
