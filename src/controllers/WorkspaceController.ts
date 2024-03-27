@@ -12,7 +12,7 @@ class WorkspaceController {
 
     async getWorkspace(req, reply) {
     
-        const { userId } = req.params;
+        const { userId } = req.query;
     
         try {
             const user = await userModel.getById(userId);
@@ -57,6 +57,18 @@ class WorkspaceController {
         } catch (error) {
             console.error('Error:', error);
             return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ error: 'Internal Server Error' });
+        }
+    }
+
+    async createPageProperty(req, reply) {
+        try {
+            const { type } = req.body;
+            const { hubId } = req.query;
+            const pageProperty = await hubModel.createPropertyInHub(hubId, type);
+            reply.send({ pageProperty, status: HTTP_STATUS.OK });
+            
+        } catch (error) {
+            console.error(error);
         }
     }
 }

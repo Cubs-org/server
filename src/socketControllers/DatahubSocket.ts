@@ -1,31 +1,61 @@
 import { Socket } from "socket.io";
 import DatahubModel from "../models/DatahubModel";
-import { PageProperty } from "../types/pagesTypes";
+import { Page, PageProperty } from "../types/pagesTypes";
+import UserModel from "../models/UserModel";
+
+const userModel = new UserModel();
 
 class DatahubSocket extends DatahubModel {
 
+    // Create Page in Datahub
     async createPage(socket: Socket) {
             try {
                 socket.on('createPage', async (
-                    req:{ datahubId: string, ownerId: string }
+                    req:{ datahubId: string, email: string }
                 ) => {
-                    const { datahubId, ownerId } = req;
-                    const newPage = await this.createPageInHub(datahubId, ownerId);
-                    socket.broadcast.emit('pageCreated', newPage);
+                    const { datahubId, email } = req;
+                    const user = await userModel.getByEmail(email);
+                    
+                    if (!user) throw new Error('User not found!');
+                    else {
+                        const newPage = await this.createPageInHub(datahubId, user.id);
+
+                        socket.broadcast.emit('pageCreated', newPage);
+                    }
                 });
             } catch (error) {
                 console.log(error);
             }
     }
 
-    /* TableView - SocketControllers */
+    async createColumn(socket: Socket) {
+        try {
+            socket.on('createColumn', async (
+                req: { datahubId: string, type: string }
+            ) => {
+                const { datahubId, type } = req;
+
+                await this.createPropertyInHub(datahubId, type);
+
+                const pages = (await this.getAllPagesFromHub(datahubId) as Page[])
+                    .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
+
+                socket.broadcast.emit('items', pages);
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     // Get Items from Datahub
     async getItems(socket: Socket) {
 
         try {
             socket.on('getItems', async (req) => {
                 const { hubId } = req;
-                const pages = await this.getAllPagesFromHub(hubId);
+                const pages = (await this.getAllPagesFromHub(hubId) as Page[])
+                    .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
+
                 socket.emit('items', pages);
             });
         } catch (error) {
@@ -33,7 +63,6 @@ class DatahubSocket extends DatahubModel {
         }
     }
 
-    /* TableView - SocketControllers */
     // Resize Column
     async resizeColumn(socket: Socket) {
 

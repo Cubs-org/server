@@ -91,7 +91,6 @@ class CalendarSocket {
             const { email } = req;
             const user = await userModel.getByEmail(email);
             if (user) {
-                console.log("User:", user);
                 this.emitCalendarItems(socket, user.id);
             }
         });

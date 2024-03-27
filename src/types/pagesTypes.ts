@@ -21,7 +21,7 @@ type Tags = {
 };
 
 export type Data = {
-    value: string | number | boolean | null;
+    value?: string | number | boolean | null;
     loadOrder: number;
     icon?: string;
     width?: number;
