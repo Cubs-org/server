@@ -11,7 +11,9 @@ function socketController(server: Server) {
     const io = server;
 
     io.on('connection', socket => {
+
         userSocket.update(socket);
+        userSocket.getPagesByMemberId(socket);
 
         calendarSocket.createNewItem(socket);
         calendarSocket.getCalendarItems(socket);

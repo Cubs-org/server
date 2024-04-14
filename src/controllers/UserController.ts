@@ -1,17 +1,27 @@
-import { HTTP_STATUS } from "../lib/http_status";
 import UserModel from "../models/UserModel";
-import { User, UserDB } from "../types/userTypes";
-import fetchOAuth from "../utils/fetch_oath";
-import hashPass from "../utils/hash_password";
-import b from "../lib/default_animal_images.json";
-import jwt from "jsonwebtoken";
-import { compare } from "bcrypt";
 import WorkspaceModel from "../models/WorkspaceModel";
 
-const userModel = new UserModel();
-const wkspModel = new WorkspaceModel();
+import { HTTP_STATUS } from "../lib/http_status";
+import b from "../lib/default_animal_images.json";
+
+import { User, UserDB } from "../types/userTypes";
+
+import fetchOAuth from "../utils/fetch_oath";
+import hashPass from "../utils/hash_password";
+
+import jwt from "jsonwebtoken";
+import { compare } from "bcrypt";
+
 
 class UserController {
+
+    private userModel: UserModel;
+    private wkspModel: WorkspaceModel;
+
+    constructor() {
+        this.userModel = new UserModel();
+        this.wkspModel = new WorkspaceModel();
+    }
 
     async create(req, reply) {
         const { name, password, email, access_token } = req.body;
@@ -52,13 +62,13 @@ class UserController {
             }
     
         
-            const userAlreadyExists = await userModel.getByEmail(email);
+            const userAlreadyExists = await this.userModel.getByEmail(email);
     
             if (userAlreadyExists) {
                 throw new Error('User already exists');
             }
     
-            const user = await userModel.create(data);
+            const user = await this.userModel.create(data);
             // const workspace = await registerWorkspace(user.id);
             const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
     
@@ -88,7 +98,7 @@ class UserController {
         }
     
         try {
-            const user = await userModel.getByEmail(email);
+            const user = await this.userModel.getByEmail(email);
     
             if (!user) {
                 return reply.send({ message: 'User does not exists.', status: HTTP_STATUS.UNAUTHORIZED });
@@ -122,14 +132,14 @@ class UserController {
             }
     
             const { email } = isValidToken;
-            const user = await userModel.getByEmail(email);
+            const user = await this.userModel.getByEmail(email);
     
             if (user) {
                 const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
                 return reply.send({ user, token: token, status: HTTP_STATUS.OK });
             } else {
                 const { name, email, picture } = isValidToken;
-                const userCreated = await userModel.create({
+                const userCreated = await this.userModel.create({
                     name,
                     email,
                     icon: picture,
@@ -154,7 +164,7 @@ class UserController {
         const { userId } = req.query;
     
         try {
-            const user = await userModel.getById(userId);
+            const user = await this.userModel.getById(userId);
 
             if (!user) throw new Error('User not found');
             else
@@ -171,10 +181,10 @@ class UserController {
         const userReq = req.body as User;
     
         try {
-            const user = await userModel.getByEmail(userReq.email);
+            const user = await this.userModel.getByEmail(userReq.email);
     
             if (user) {
-                const userUpdated = await userModel.update(userReq.email);
+                const userUpdated = await this.userModel.update(userReq.email);
     
                 if (userUpdated) {
                     reply.status(HTTP_STATUS.OK).send({
@@ -203,14 +213,14 @@ class UserController {
         const { userId } = req.query;
     
         try {
-            const user = await userModel.getById(userId);
+            const user = await this.userModel.getById(userId);
     
             if (!user) throw new Error('User not found');
             else {
 
                 let status = !user.trash;
 
-                const userUpdated = await userModel.delete(userId, status);
+                const userUpdated = await this.userModel.delete(userId, status);
 
                 if (!userUpdated) {
                     throw new Error('User not updated');
@@ -235,12 +245,12 @@ class UserController {
         const { userId } = req.query;
     
         try {
-            const user = await userModel.getById(userId);
+            const user = await this.userModel.getById(userId);
     
             if (!user) throw new Error('User not found');
             else {
-                const workspace = await wkspModel.delete(userId);
-                const userDeleted = await userModel.deletePermanently(userId);
+                const workspace = await this.wkspModel.delete(userId);
+                const userDeleted = await this.userModel.deletePermanently(userId);
     
                 if (!userDeleted) {
                     throw new Error('User not deleted');

@@ -1,7 +1,9 @@
 import { Socket } from "socket.io";
 import UserModel from "../models/UserModel";
+import WorkspaceModel from "../models/WorkspaceModel";
 
 const model = new UserModel();
+const wkspModel = new WorkspaceModel();
 
 class UserSocket {
 
@@ -16,6 +18,18 @@ class UserSocket {
     
                     socket.broadcast.emit('updateUser', userUpdated);
                 }
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async getPagesByMemberId(socket: Socket) {
+
+        try {
+            socket.on('getPagesByMemberId/emit', async (req) => {
+                const pages = await wkspModel.getPagesByMemberId(req.id);
+                socket.emit('getPagesByMemberId/on', pages);
             });
         } catch (error) {
             console.log(error);

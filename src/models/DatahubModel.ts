@@ -1,5 +1,5 @@
 import { prisma } from "../database/prisma-client";
-import { Page, PageProperty } from "../types/pagesTypes";
+import { Data, Page, PageProperty } from "../types/pagesTypes";
 import setnewDataFromPageProp from "../utils/setDataFromPageProp";
 import { setDefaultValuesFromPageProperty } from "../utils/setDefaultValuesFromPageProperty";
 import PagePropertiesModel from "./PagePropertiesModel";
@@ -179,8 +179,8 @@ class DatahubModel extends PagePropertiesModel {
                     createMany: {
                         skipDuplicates: true,
                         data: firstPageOfHub.properties.map((property) => {
-                            let newData = (property.data as any);
-                            newData = setnewDataFromPageProp(property.type, newData);
+                            let newData = (property.data as Data);
+                            newData = setnewDataFromPageProp(property.type, newData) as Data;
                             return {
                                 title: property.title,
                                 type: property.type,

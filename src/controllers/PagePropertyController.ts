@@ -4,10 +4,15 @@ import UserModel from "../models/UserModel";
 import { PageProperty } from "../types/pagesTypes";
 import { setDefaultValuesFromPageProperty } from "../utils/setDefaultValuesFromPageProperty";
 
-const userModel = new UserModel();
-const pagePropModel = new PagePropertyModel();
-
 class PagePropertyController {
+
+    private userModel: UserModel;
+    private pagePropModel: PagePropertyModel;
+
+    constructor() {
+        this.userModel = new UserModel();
+        this.pagePropModel = new PagePropertyModel();
+    }
 
     async create(req, reply) {
 
@@ -18,20 +23,20 @@ class PagePropertyController {
         try {
 
             let _data = {...data, loadOrder: 0};
-            const getAllProperties = await pagePropModel.getPropertiesByPage(pageId);
+            const getAllProperties = await this.pagePropModel.getPropertiesByPage(pageId);
             if (getAllProperties.length > 0) {
                 _data.loadOrder = (getAllProperties.length + 1);
             }
 
-            let pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage = await pagePropModel.getPropertiesByPage(pageId),
+            let pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage = await this.pagePropModel.getPropertiesByPage(pageId),
                 pageProperty =  {} as PageProperty;
 
             if (pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage.filter(pgProp => pgProp.title === title).length > 0)
             {
                 const newTitle = `${title} (${pgPropAlreadyExiAlreadyExistsAlreadyExistsInPage.length})`;
-                pageProperty = await pagePropModel.create(newTitle, type, _data, pageId);
+                pageProperty = await this.pagePropModel.create(newTitle, type, _data, pageId);
             } else {
-                pageProperty = await pagePropModel.create(title, type, _data, pageId);
+                pageProperty = await this.pagePropModel.create(title, type, _data, pageId);
             }
 
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
@@ -46,14 +51,14 @@ class PagePropertyController {
         const { userId, isAdmin, pagePropertyId } = req.body;
 
         try {
-            const user = await userModel.getById(userId);
+            const user = await this.userModel.getById(userId);
 
             if (user) {
-                const memberAlreadyExists = await pagePropModel.getMemberByUserId(userId, pagePropertyId);
+                const memberAlreadyExists = await this.pagePropModel.getMemberByUserId(userId, pagePropertyId);
                 
                 if(memberAlreadyExists) throw new Error('Member already exists');
                 else {
-                    const member = await pagePropModel.addMember(userId, isAdmin, pagePropertyId);
+                    const member = await this.pagePropModel.addMember(userId, isAdmin, pagePropertyId);
 
                     return reply.send({ member, status: HTTP_STATUS.OK });
                 }
@@ -70,8 +75,8 @@ class PagePropertyController {
     
         try {
             let pageProperty:PageProperty;
-            if (!title) pageProperty = await pagePropModel.update(id, data) as PageProperty;
-            else pageProperty = await pagePropModel.update(id, data, title) as PageProperty;
+            if (!title) pageProperty = await this.pagePropModel.update(id, data) as PageProperty;
+            else pageProperty = await this.pagePropModel.update(id, data, title) as PageProperty;
     
             return reply.send({ pageProperty, status: HTTP_STATUS.OK });
         } catch (error) {

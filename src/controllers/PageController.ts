@@ -1,10 +1,19 @@
+import WorkspaceModel from "../models/WorkspaceModel";
 import PageModel from "../models/PageModel";
-import { HTTP_STATUS } from "../lib/http_status";
+
 import { Page, PageProperty } from "../types/pagesTypes";
 
-const pageModel = new PageModel();
+import { HTTP_STATUS } from "../lib/http_status";
 
 class PageController {
+
+    private pageModel: PageModel = new PageModel();
+    private wkspModel: WorkspaceModel;
+
+    constructor() {
+        this.pageModel = new PageModel();
+        this.wkspModel = new WorkspaceModel();
+    }
 
     async create(req, reply) {
 
@@ -15,8 +24,8 @@ class PageController {
             else {
 
                 let page:Page;
-                if (datahubId) page = await pageModel.create(title, ownerId, datahubId);
-                else page = await pageModel.create(title, ownerId);
+                if (datahubId) page = await this.pageModel.create(title, ownerId, datahubId);
+                else page = await this.pageModel.create(title, ownerId);
 
                 return reply.send({ page, status: HTTP_STATUS.OK });
             }
@@ -37,7 +46,7 @@ class PageController {
 
             if (!title) throw new Error('Missing parameters');
 
-            const page = await pageModel.update(pageId, title);
+            const page = await this.pageModel.update(pageId, title);
 
             return reply.send({ page, status: HTTP_STATUS.OK });
         } catch (error:any) {
@@ -51,14 +60,14 @@ class PageController {
 
         const { userId } = req.params;
 
-        const pagesFromOwner:Page[] = await pageModel.getPagesByOwner(userId),
+        const pagesFromOwner:Page[] = await this.pageModel.getPagesByOwner(userId),
             pages:Page[] | null = [];
 
         if (pagesFromOwner.length > 0) {
 
             for (let page of pagesFromOwner) {
 
-                const pageProperties: PageProperty[] = await pageModel.getPropertiesByPage(page.id) as PageProperty[];
+                const pageProperties: PageProperty[] = await this.pageModel.getPropertiesByPage(page.id) as PageProperty[];
                 
                 if (pageProperties.length > 0) {
                     pages.push({
@@ -73,6 +82,20 @@ class PageController {
 
 
         reply.send({ pages, status: HTTP_STATUS.OK });
+    }
+
+    async getPagesByMember(req, reply) {
+            
+            const { userId } = req.params;
+    
+            try {
+                
+                const pages = await this.wkspModel.getPagesByMemberId(userId);
+    
+                return reply.send({ pages, status: HTTP_STATUS.OK });
+            } catch (error:any) {
+                console.error("Message:", error.message);
+            }
     }
 }
 

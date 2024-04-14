@@ -6,10 +6,10 @@ const router = Router();
 const pageController = new PageController();
 const pagePropertyController = new PagePropertyController();
 
-router.post('/createPage', pageController.create);
-router.get('/:userId', pageController.getAllPagesFromUser);
-router.post('/updatePage/:pageId', pageController.update);
-router.post('/createPageProperty', pagePropertyController.create);
-router.post('/addMember', pagePropertyController.addMember);
+router.post('/createPage', pageController.create.bind(pageController));
+router.get('/:userId', pageController.getAllPagesFromUser.bind(pageController));
+router.post('/updatePage/:pageId', pageController.update.bind(pageController));
+router.post('/createPageProperty', pagePropertyController.create.bind(pageController));
+router.post('/addMember', pagePropertyController.addMember.bind(pageController));
 
 export default router;
