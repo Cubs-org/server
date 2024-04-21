@@ -12,7 +12,6 @@ import hashPass from "../utils/hash_password";
 import jwt from "jsonwebtoken";
 import { compare } from "bcrypt";
 
-
 class UserController {
 
     private userModel: UserModel;
@@ -64,13 +63,11 @@ class UserController {
         
             const userAlreadyExists = await this.userModel.getByEmail(email);
     
-            if (userAlreadyExists) {
-                throw new Error('User already exists');
-            }
+            if (userAlreadyExists) throw new Error('User already exists');
     
             const user = await this.userModel.create(data);
-            // const workspace = await registerWorkspace(user.id);
-            const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
+            const hubId = await this.userModel.getHubId(user.id);
+            const token = jwt.sign({ user, hubId }, "secret", { expiresIn: '72h' });
     
             return reply.send({
                 status: HTTP_STATUS.OK,
@@ -93,27 +90,23 @@ class UserController {
     async authenticateUser(req, reply) {
         const { email, password } = req.body;
     
-        if (!email || !password) {
-            return reply.send({ message: 'Request is missing data.', status: HTTP_STATUS.BAD_REQUEST });
-        }
-    
         try {
+            if (!email || !password) throw new Error('Missing data');
             const user = await this.userModel.getByEmail(email);
     
-            if (!user) {
-                return reply.send({ message: 'User does not exists.', status: HTTP_STATUS.UNAUTHORIZED });
-            }
-    
+            if (!user) throw new Error('User not found');
+            
+            const hubId = await this.userModel.getHubId(user.id);
             const passwordMatch = await compare(password, user.password);
     
-            if (passwordMatch) {
-                const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
-                return reply.send({ user, status: HTTP_STATUS.OK, token });
-            } else {
-                return reply.send({ message: 'Invalid password.', status: HTTP_STATUS.UNAUTHORIZED });
-            }
+            if (!passwordMatch) throw new Error('Invalid password');
+
+            const token = jwt.sign({ user, hubId }, "secret", { expiresIn: '72h' });
+            return reply.send({ user, status: HTTP_STATUS.OK, token });
         } catch (error) {
-            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'Internal Server Error', status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+            const message = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.log("Message:", message);
+            return reply.send({ message, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
         }
     }
 
@@ -135,7 +128,8 @@ class UserController {
             const user = await this.userModel.getByEmail(email);
     
             if (user) {
-                const token = jwt.sign({ user }, "secret", { expiresIn: '72h' });
+                const hubId = await this.userModel.getHubId(user.id);
+                const token = jwt.sign({ user, hubId }, "secret", { expiresIn: '72h' });
                 return reply.send({ user, token: token, status: HTTP_STATUS.OK });
             } else {
                 const { name, email, picture } = isValidToken;
@@ -176,34 +170,26 @@ class UserController {
         }
     }
     
-    async updateUser(req, reply) {
+    async update(req, reply) {
 
         const userReq = req.body as User;
     
         try {
             const user = await this.userModel.getByEmail(userReq.email);
     
-            if (user) {
-                const userUpdated = await this.userModel.update(userReq.email);
-    
-                if (userUpdated) {
-                    reply.status(HTTP_STATUS.OK).send({
-                        message: "User updated successfully",
-                        user: userUpdated,
-                    });
-                } else {
-                    reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
-                        message: "User not updated",
-                    });
-                }
-            } else {
-                reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
-                    message: "User not found",
-                });
-            }
+            if (!user) throw new Error('User not found');
+            
+            const userUpdated = await this.userModel.update(userReq);
+
+            if (!userUpdated) throw new Error('User not updated');
+
+            return reply.send({
+                status: HTTP_STATUS.OK,
+                message: 'User has been updated',
+            });
         } catch (error) {
             console.error('Error:', error);
-            reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+            return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
                 error: 'Internal server error',
             });
         }

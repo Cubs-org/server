@@ -4,7 +4,7 @@ import formatTitle from "../utils/formatTitle"
 class UserModel {
 
     async create(data) {
-        const user = await prisma.user.create({
+        let user = await prisma.user.create({
             data: {
                 ...data,
                 workspace: {
@@ -55,7 +55,7 @@ class UserModel {
                 icon: data.icon
             }
         });
-    
+        
         return user;
     }
 
@@ -91,6 +91,23 @@ class UserModel {
         });
     
         return userDeleted;
+    }
+
+    async getHubId(userId: string) {
+        const user = await prisma.user.findFirst({
+            where: {
+                id: userId
+            },
+            select: {
+                workspace: {
+                    select: {
+                        databaseId: true
+                    }
+                }
+            }
+        }) as any;
+        
+        return user.workspace[0].databaseId;
     }
 }
 

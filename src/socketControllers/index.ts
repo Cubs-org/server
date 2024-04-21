@@ -1,9 +1,9 @@
 import { Server } from 'socket.io';
-import UserSocket from './UserSocket';
 import CalendarSocket from './CalendarSocket';
 import DatahubSocket from './DatahubSocket';
+import WorkspaceSocket from './WorkspaceSocket';
 
-const userSocket = new UserSocket();
+const wkspSocket = new WorkspaceSocket();
 const calendarSocket = new CalendarSocket();
 const datahubSocket = new DatahubSocket();
 
@@ -11,9 +11,7 @@ function socketController(server: Server) {
     const io = server;
 
     io.on('connection', socket => {
-
-        userSocket.update(socket);
-        userSocket.getPagesByMemberId(socket);
+        wkspSocket.getPagesByMemberId(socket);
 
         calendarSocket.createNewItem(socket);
         calendarSocket.getCalendarItems(socket);

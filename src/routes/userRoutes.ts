@@ -10,5 +10,6 @@ router.post('/authenticateUser/oauth', userController.authByGoogle.bind(userCont
 router.get('/getUser', userController.get.bind(userController));
 router.delete('/deleteUser', userController.setUserTrashedStatus.bind(userController));
 router.delete('/deleteUser/permanently', userController.delete.bind(userController));
+router.put('/updateUser', userController.update.bind(userController));
 
 export default router;

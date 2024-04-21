@@ -113,14 +113,16 @@ class DatahubModel extends PagePropertiesModel {
         return datahubId;
     }
 
-    async setColumnWidth(columnTitle: string, newWidth: number) {
+    async setColumnWidth(hubId, columnTitle: string, newWidth: number) {
 
-        let datahubId,
-            columns = await prisma.pageProperties.findMany({
-                where: {
-                    title: columnTitle
+        const columns = await prisma.pageProperties.findMany({
+            where: {
+                title: columnTitle,
+                page: {
+                    datahubId: hubId
                 }
-            }) as PageProperty[];
+            }
+        }) as PageProperty[];
 
         columns.forEach(async (col) => {
             let newColData = (col.data as any);
@@ -135,16 +137,6 @@ class DatahubModel extends PagePropertiesModel {
                 }
             });
         });
-
-        await prisma.page.findFirst({
-            where: {
-                id: columns[0]?.pageId
-            }
-        }).then((page) => {
-            datahubId = page?.datahubId;
-        });
-
-        return datahubId;
     }
 
     async createPageInHub(
@@ -211,9 +203,7 @@ class DatahubModel extends PagePropertiesModel {
         data.loadOrder = await pgPropAlreadyExistsInHub.length + 1;
 
         if (pgPropAlreadyExistsInHub.filter(pgProp => pgProp.title === title).length > 0)
-        {
             title = `${title} (${pgPropAlreadyExistsInHub.length})`;
-        }
         
         const newProperties = await prisma.pageProperties.createMany({
             data: pages.map((page) => {

@@ -34,7 +34,7 @@ class WorkspaceModel {
             JOIN 
                 page ON page_properties.page_id = page.id
             WHERE 
-                member.user_id = 'd5db2b7b-1573-45a7-a0ad-73cea311d369';
+                member.user_id = ${userId};
         `;
 
         return pages;
