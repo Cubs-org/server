@@ -9,7 +9,7 @@ const pagePropertyController = new PagePropertyController();
 router.post('/createPage', pageController.create.bind(pageController));
 router.get('/:userId', pageController.getAllPagesFromUser.bind(pageController));
 router.post('/updatePage/:pageId', pageController.update.bind(pageController));
-router.post('/createPageProperty', pagePropertyController.create.bind(pageController));
-router.post('/addMember', pagePropertyController.addMember.bind(pageController));
+router.post('/createPageProperty', pagePropertyController.create.bind(pagePropertyController));
+router.post('/addMember', pagePropertyController.addMember.bind(pagePropertyController));
 
 export default router;

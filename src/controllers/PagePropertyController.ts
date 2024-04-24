@@ -48,17 +48,17 @@ class PagePropertyController {
 
     async addMember(req, reply) {
 
-        const { userId, isAdmin, pagePropertyId } = req.body;
+        const { email, isAdmin, pagePropertyId } = req.body;
 
         try {
-            const user = await this.userModel.getById(userId);
+            const user = await this.userModel.getByEmail(email);
 
             if (user) {
-                const memberAlreadyExists = await this.pagePropModel.getMemberByUserId(userId, pagePropertyId);
+                const memberAlreadyExists = await this.pagePropModel.getMemberByUserId(user.id, pagePropertyId);
                 
                 if(memberAlreadyExists) throw new Error('Member already exists');
                 else {
-                    const member = await this.pagePropModel.addMember(userId, isAdmin, pagePropertyId);
+                    const member = await this.pagePropModel.addMember(user.id, isAdmin, pagePropertyId);
 
                     return reply.send({ member, status: HTTP_STATUS.OK });
                 }

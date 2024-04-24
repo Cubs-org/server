@@ -187,10 +187,10 @@ model Chat {
 }
 
 model Tool {
-  id         String   @id @default(uuid())
-  type       String
-  properties Json
-  trash      Boolean? @default(false)
+  id    String   @id @default(uuid())
+  type  String
+  data  Json
+  trash Boolean? @default(false)
 
   pageId String
 

@@ -22,6 +22,7 @@ class WorkspaceModel {
             SELECT
                 page.data,
                 page.title,
+                page.id,
                 page.updated_at,
                 user.email,
                 member.is_admin
