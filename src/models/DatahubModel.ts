@@ -79,7 +79,6 @@ class DatahubModel extends PagePropertiesModel {
             newTargetData.loadOrder = draggedOrder;
             await prisma.pageProperties.update({
                 where: {
-                    title: targetTitle,
                     id: targetCol.id
                 },
                 data: {
@@ -113,30 +112,30 @@ class DatahubModel extends PagePropertiesModel {
         return datahubId;
     }
 
-    async setColumnWidth(hubId, columnTitle: string, newWidth: number) {
-
+    async setColumnWidth(hubId: string, columnTitle: string, newWidth: number) {
         const columns = await prisma.pageProperties.findMany({
             where: {
-                title: columnTitle,
-                page: {
-                    datahubId: hubId
-                }
+                AND: [
+                    {
+                        title: columnTitle
+                    },
+                    {
+                        title: columnTitle
+                    }
+                ]
             }
-        }) as PageProperty[];
-
-        columns.forEach(async (col) => {
-            let newColData = (col.data as any);
-            newColData.width = newWidth;
+        });
+    
+        await Promise.all(columns.map(async (col) => {
+            let newColData = { ...(col.data as Object), width: newWidth }; // Manter os dados existentes e atualizar a largura
+            console.log(newColData);
             await prisma.pageProperties.update({
-                where: {
-                    title: columnTitle,
-                    id: col.id
-                },
+                where: { id: col.id },
                 data: {
-                    data: newColData,
+                    data: newColData as Data
                 }
             });
-        });
+        }));
     }
 
     async createPageInHub(

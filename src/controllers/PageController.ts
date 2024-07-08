@@ -4,15 +4,18 @@ import PageModel from "../models/PageModel";
 import { Page, PageProperty } from "../types/pagesTypes";
 
 import { HTTP_STATUS } from "../lib/http_status";
+import ToolModel from "../models/ToolModel";
 
 class PageController {
 
     private pageModel: PageModel = new PageModel();
     private wkspModel: WorkspaceModel;
+    private toolModel: ToolModel;
 
     constructor() {
         this.pageModel = new PageModel();
         this.wkspModel = new WorkspaceModel();
+        this.toolModel = new ToolModel();
     }
 
     async create(req, reply) {
@@ -80,7 +83,6 @@ class PageController {
             }
         }
 
-
         reply.send({ pages, status: HTTP_STATUS.OK });
     }
 
@@ -96,6 +98,43 @@ class PageController {
             } catch (error:any) {
                 console.error("Message:", error.message);
             }
+    }
+
+    async createTool(req, reply) {
+
+        try {
+            
+            const { type, pageId } = req.body;
+
+            if (!pageId) throw new Error('Missing pageId parameter');
+
+            if (!type) throw new Error('Missing parameters');
+
+            const tool = await this.toolModel.create(type, pageId);
+
+            return reply.send({ tool, status: HTTP_STATUS.OK });
+        } catch (error: any) {
+            const message = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.error("Message:", message);
+            return reply.send({ message, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+        }
+    }
+
+    async getToolsByPageId(req, reply) {
+
+        try {
+            const { pageId } = req.query;
+
+            if (!pageId) throw new Error('Missing pageId parameter');
+
+            const tools = await this.toolModel.getToolsByPageId(pageId);
+
+            return reply.send({ tools, status: HTTP_STATUS.OK });
+        } catch (error: any) {
+            const message = error instanceof Error ? error.message : 'An unknown error occurred';
+            console.error("Message:", message);
+            return reply.send({ message, status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+        }
     }
 }
 

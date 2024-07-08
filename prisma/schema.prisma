@@ -38,28 +38,6 @@ enum TypeMessage {
   generalStatement
 }
 
-enum KanbanType {
-  task
-  project
-}
-
-enum MediaTypes {
-  image
-  video
-  file
-  pdf
-  generalArchive
-}
-
-enum EmbedTypes {
-  image
-  youtube
-  video
-  pdf
-  googleDrive
-  page
-}
-
 enum PagePropsTypes {
   text
   number
@@ -74,6 +52,33 @@ enum PagePropsTypes {
   status
   button
   calendar
+}
+
+enum ToolsTypes {
+  kanban_hub
+  table_hub
+  calendar_hub
+
+  text
+  numbered_list
+  bulleted_list
+  code
+  equation
+  to_do
+  table
+  quote
+
+  divider
+
+  image
+  video
+  file
+
+  embed
+
+  button
+  kanban
+  page
 }
 
 // Tables
@@ -140,7 +145,6 @@ model DataHub {
 
   Workspace Workspace[]
   Page      Page[]
-  Kanban    Kanban[]
   Goal      Goal[]
 
   @@map("data_hub")
@@ -187,74 +191,16 @@ model Chat {
 }
 
 model Tool {
-  id    String   @id @default(uuid())
-  type  String
-  data  Json
-  trash Boolean? @default(false)
+  id    Int        @id @default(autoincrement())
+  type  ToolsTypes
+  data  String     @db.LongText
+  trash Boolean?   @default(false)
 
   pageId String
 
   page Page @relation(fields: [pageId], references: [id])
 
   @@map("tool")
-}
-
-model Button {
-  id    String   @id @default(uuid())
-  title String
-  data  Json? // { icon: "", action: "openPage", pageId: "123"}, { icon: "", action: "setStatus", status: "done"} ...
-  trash Boolean? @default(false)
-
-  @@map("button")
-}
-
-model Media {
-  id      String     @id @default(uuid())
-  type    MediaTypes
-  content Bytes      @db.LongBlob
-
-  @@map("media")
-}
-
-model EmbedByLink {
-  id   String     @id @default(uuid())
-  type EmbedTypes
-  url  String
-
-  @@map("embed_by_link")
-}
-
-model RichText {
-  id      String @id @default(uuid())
-  content String
-
-  @@map("rich_text")
-}
-
-model CheckList {
-  id      String @id @default(uuid())
-  content String
-
-  @@map("check_list")
-}
-
-model Table {
-  id   String @id @default(uuid())
-  data Json
-
-  @@map("table")
-}
-
-model Kanban {
-  id    String     @id @default(uuid())
-  type  KanbanType
-  title String
-
-  databaseId String @map("database_id")
-
-  database DataHub @relation(fields: [databaseId], references: [id])
-
-  @@map("kanban")
 }
 
 model Goal {

@@ -49,7 +49,6 @@ class DatahubSocket extends DatahubModel {
 
     // Get Items from Datahub
     async getItems(socket: Socket) {
-
         try {
             socket.on('getItems', async (req) => {
                 const { hubId } = req;
@@ -65,27 +64,29 @@ class DatahubSocket extends DatahubModel {
 
     // Resize Column
     async resizeColumn(socket: Socket) {
-
         try {
-
             socket.on('resizeColumn', async (req) => {
-
                 const { columnTitle, newWidth, hubId } = req;
-
+    
                 if (!columnTitle || !newWidth || !hubId) return;
-
+    
+                // Aguardar a conclusão da função setColumnWidth
                 await this.setColumnWidth(hubId, columnTitle, newWidth);
-                
+    
+                // Atualizar propriedades das páginas (se necessário)
                 let pages = await this.getAllPagesFromHub(hubId);
-
-                pages.map(page => {
+                pages.forEach((page) => {
                     (page.properties ?? []).forEach((property: PageProperty) => {
-                        if (property.title === columnTitle)
+                        if (property.title === columnTitle) {
                             property.data.width = newWidth;
+                        }
                     });
                 });
-
-                socket.broadcast.emit('columnResized', pages);
+    
+                // Enviar evento columnResized para todos os sockets, se houver páginas
+                if (pages.length > 0) {
+                    socket.broadcast.emit('columnResized', pages);
+                }
             });
         } catch (error) {
             console.log(error);
@@ -94,7 +95,6 @@ class DatahubSocket extends DatahubModel {
 
     // Move Column
     async moveColumn(socket: Socket) {
-
         try {
             socket.on('moveColumn', async (req) => {
                 
