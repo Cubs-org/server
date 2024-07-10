@@ -52,6 +52,9 @@ class DatahubSocket extends DatahubModel {
         try {
             socket.on('getItems', async (req) => {
                 const { hubId } = req;
+                
+                if (!hubId) throw new Error('HubId not found!');
+
                 const pages = (await this.getAllPagesFromHub(hubId) as Page[])
                     .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
 

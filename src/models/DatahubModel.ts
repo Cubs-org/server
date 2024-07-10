@@ -128,7 +128,6 @@ class DatahubModel extends PagePropertiesModel {
     
         await Promise.all(columns.map(async (col) => {
             let newColData = { ...(col.data as Object), width: newWidth }; // Manter os dados existentes e atualizar a largura
-            console.log(newColData);
             await prisma.pageProperties.update({
                 where: { id: col.id },
                 data: {
