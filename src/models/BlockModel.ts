@@ -1,19 +1,32 @@
 import { prisma } from "../database/prisma-client";
 import { ToolType } from "../types/tools";
-import setDefaultDataFromTool from "../utils/tools/setDefaultDataFromTool";
 import PageModel from "./PageModel";
 
-interface IToolData {
+interface IBlockData {
     create(type:ToolType, pageId: string): Promise<any>
     getToolsByPageId(pageId: string): Promise<any>
 }
 
-class ToolModel implements IToolData {
+class BlockModel implements IBlockData {
 
     private pgModel: PageModel;
 
     constructor () {
         this.pgModel = new PageModel();
+    }
+
+    async getNextIndex(pageId: string): Promise<number> {
+        const sequence = await prisma.block.findMany({
+            where: {
+                pageId
+            },
+            orderBy: {
+                orderY: "desc"
+            },
+            take: 1
+        });
+
+        return sequence.length ? sequence[0].orderY + 1 : 1;
     }
 
     async create(type:ToolType, pageId: string) {
@@ -22,14 +35,15 @@ class ToolModel implements IToolData {
 
         if (!page) throw new Error("Page not found");
 
-        const tools = await this.getToolsByPageId(pageId);
+        const nextIndex = await this.getNextIndex(pageId);
 
-        const tool = await prisma.tool.create({
+        const tool = await prisma.block.create({
             data: {
                 type,
+                orderY: nextIndex,
+                orderX: 1,
                 data: JSON.stringify({
-                    ...setDefaultDataFromTool(tools.length + 1),
-                    ...(type === "text" && { text: "New Text" }),
+                    ...(type === "text" && { text: "Some new Text" }),
                 }) as string,
                 page: {
                     connect: {
@@ -44,7 +58,7 @@ class ToolModel implements IToolData {
 
     async getToolsByPageId(pageId: string) {
     
-        const tools = await prisma.tool.findMany({
+        const tools = await prisma.block.findMany({
             where: {
                 pageId
             }
@@ -54,4 +68,4 @@ class ToolModel implements IToolData {
     }
 }
 
-export default ToolModel;
+export default BlockModel;

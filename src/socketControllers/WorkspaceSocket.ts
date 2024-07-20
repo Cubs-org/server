@@ -22,6 +22,18 @@ class WorkspaceSocket {
             console.log(error);
         }
     }
+
+    async tagsTest(socket: Socket) {
+
+        try {
+            socket.on('tagsTest', async (req) => {
+                console.log('received: ', req);
+                socket.emit('tagsTest', { message: 'Hello from server' });
+            });
+        } catch (error) {
+            console.log(`:CubsServer\n(tagsTest)Error: ${JSON.stringify(error)}`);
+        }
+    }
 }
 
 export default WorkspaceSocket;

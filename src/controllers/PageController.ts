@@ -4,18 +4,18 @@ import PageModel from "../models/PageModel";
 import { Page, PageProperty } from "../types/pagesTypes";
 
 import { HTTP_STATUS } from "../lib/http_status";
-import ToolModel from "../models/ToolModel";
+import BlockModel from "../models/BlockModel";
 
 class PageController {
 
     private pageModel: PageModel = new PageModel();
     private wkspModel: WorkspaceModel;
-    private toolModel: ToolModel;
+    private BlockModel: BlockModel;
 
     constructor() {
         this.pageModel = new PageModel();
         this.wkspModel = new WorkspaceModel();
-        this.toolModel = new ToolModel();
+        this.BlockModel = new BlockModel();
     }
 
     async create(req, reply) {
@@ -110,7 +110,7 @@ class PageController {
 
             if (!type) throw new Error('Missing parameters');
 
-            const tool = await this.toolModel.create(type, pageId);
+            const tool = await this.BlockModel.create(type, pageId);
 
             return reply.send({ tool, status: HTTP_STATUS.OK });
         } catch (error: any) {
@@ -127,7 +127,7 @@ class PageController {
 
             if (!pageId) throw new Error('Missing pageId parameter');
 
-            const tools = await this.toolModel.getToolsByPageId(pageId);
+            const tools = await this.BlockModel.getToolsByPageId(pageId);
 
             return reply.send({ tools, status: HTTP_STATUS.OK });
         } catch (error: any) {

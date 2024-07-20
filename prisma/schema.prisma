@@ -54,7 +54,7 @@ enum PagePropsTypes {
   calendar
 }
 
-enum ToolsTypes {
+enum BlockTypes {
   kanban_hub
   table_hub
   calendar_hub
@@ -131,7 +131,7 @@ model Page {
   pageProperties PageProperties[]
   owner          User             @relation(fields: [ownerId], references: [id])
   datahub        DataHub?         @relation(fields: [datahubId], references: [id])
-  tool           Tool[]
+  tool           Block[]
   chat           Chat[]
 
   @@map("page")
@@ -190,11 +190,13 @@ model Chat {
   @@map("chat")
 }
 
-model Tool {
+model Block {
   id    Int        @id @default(autoincrement())
-  type  ToolsTypes
+  type  BlockTypes
   data  String     @db.LongText
   trash Boolean?   @default(false)
+  orderY Int    @map("order_y")
+  orderX Int      @map("order_x")
 
   pageId String
 

@@ -10,7 +10,7 @@ class DatahubSocket extends DatahubModel {
     // Create Page in Datahub
     async createPage(socket: Socket) {
             try {
-                socket.on('createPage', async (
+                socket.on('request:createHubPage', async (
                     req:{ datahubId: string, email: string }
                 ) => {
                     const { datahubId, email } = req;
@@ -20,7 +20,7 @@ class DatahubSocket extends DatahubModel {
                     else {
                         const newPage = await this.createPageInHub(datahubId, user.id);
 
-                        socket.broadcast.emit('pageCreated', newPage);
+                        socket.broadcast.emit('response:createHubPage', newPage);
                     }
                 });
             } catch (error) {
@@ -30,7 +30,7 @@ class DatahubSocket extends DatahubModel {
 
     async createColumn(socket: Socket) {
         try {
-            socket.on('createColumn', async (
+            socket.on('request:createHubNewProperty', async (
                 req: { datahubId: string, type: string }
             ) => {
                 const { datahubId, type } = req;
@@ -40,25 +40,32 @@ class DatahubSocket extends DatahubModel {
                 const pages = (await this.getAllPagesFromHub(datahubId) as Page[])
                     .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
 
-                socket.broadcast.emit('items', pages);
+                socket.broadcast.emit('response:getPagesFromHub', pages);
             });
         } catch (error) {
             console.log(error);
         }
     }
 
-    // Get Items from Datahub
-    async getItems(socket: Socket) {
+    // Get Pages from Hub
+    async getPagesFromHub(socket: Socket) {
         try {
-            socket.on('getItems', async (req) => {
+            socket.on('request:getPagesFromHub', async (req) => {
                 const { hubId } = req;
                 
-                if (!hubId) throw new Error('HubId not found!');
-
-                const pages = (await this.getAllPagesFromHub(hubId) as Page[])
-                    .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
-
-                socket.emit('items', pages);
+                if (!hubId) {
+                    socket.emit('response:getPagesFromHub', { error: 'HubId not found!' });
+                    return;
+                }
+    
+                try {
+                    const pages = (await this.getAllPagesFromHub(hubId) as Page[])
+                        .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
+                    
+                    socket.emit('response:getPagesFromHub', { pages });
+                } catch (error: any) {
+                    socket.emit('response:getPagesFromHub', { error: error.message });
+                }
             });
         } catch (error) {
             console.log(error);

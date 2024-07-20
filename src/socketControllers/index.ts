@@ -12,13 +12,14 @@ function socketController(server: Server) {
 
     io.on('connection', socket => {
         wkspSocket.getPagesByMemberId(socket);
+        wkspSocket.tagsTest(socket);
 
         calendarSocket.createNewItem(socket);
         calendarSocket.getCalendarItems(socket);
         calendarSocket.updateItem(socket);
         calendarSocket.deleteItem(socket);
 
-        datahubSocket.getItems(socket);
+        datahubSocket.getPagesFromHub(socket);
         datahubSocket.moveColumn(socket);
         datahubSocket.resizeColumn(socket);
         datahubSocket.createPage(socket);
