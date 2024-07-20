@@ -3,12 +3,11 @@ import CalendarSocket from './CalendarSocket';
 import DatahubSocket from './DatahubSocket';
 import WorkspaceSocket from './WorkspaceSocket';
 
-const wkspSocket = new WorkspaceSocket();
-const calendarSocket = new CalendarSocket();
-const datahubSocket = new DatahubSocket();
-
 function socketController(server: Server) {
     const io = server;
+    const datahubSocket = new DatahubSocket(io);
+    const calendarSocket = new CalendarSocket();
+    const wkspSocket = new WorkspaceSocket();
 
     io.on('connection', socket => {
         wkspSocket.getPagesByMemberId(socket);
@@ -24,6 +23,16 @@ function socketController(server: Server) {
         datahubSocket.resizeColumn(socket);
         datahubSocket.createPage(socket);
         datahubSocket.createColumn(socket);
+
+        // Handle joining and leaving rooms
+        socket.on('joinRoom', (room: string) => {
+            datahubSocket.joinRoom(socket, room);
+        });
+
+        socket.on('leaveRoom', (room: string) => {
+            datahubSocket.leaveRoom(socket, room);
+        });
+
         socket.on('disconnect', () => console.log('Disconnected'));
     });
 }

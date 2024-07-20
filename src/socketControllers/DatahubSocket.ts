@@ -1,4 +1,4 @@
-import { Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import DatahubModel from "../models/DatahubModel";
 import { Page, PageProperty } from "../types/pagesTypes";
 import UserModel from "../models/UserModel";
@@ -7,25 +7,50 @@ const userModel = new UserModel();
 
 class DatahubSocket extends DatahubModel {
 
+    private io: Server;
+
+    constructor(io: Server) {
+        super();
+        this.io = io;
+    }
+
+    // Join a room
+    joinRoom(socket: Socket, room: string) {
+        socket.join(room);
+    }
+
+    // Leave a room
+    leaveRoom(socket: Socket, room: string) {
+        socket.leave(room);
+    }
+
     // Create Page in Datahub
     async createPage(socket: Socket) {
-            try {
-                socket.on('request:createHubPage', async (
-                    req:{ datahubId: string, email: string }
-                ) => {
-                    const { datahubId, email } = req;
-                    const user = await userModel.getByEmail(email);
-                    
-                    if (!user) throw new Error('User not found!');
-                    else {
-                        const newPage = await this.createPageInHub(datahubId, user.id);
+        try {
+            socket.on('request:createHubPage', async (
+                req: { datahubId: string, email: string }
+            ) => {
+                const { datahubId, email } = req;
+                const user = await userModel.getByEmail(email);
 
-                        socket.broadcast.emit('response:createHubPage', newPage);
-                    }
-                });
-            } catch (error) {
-                console.log(error);
-            }
+                if (!user) throw new Error('User not found!');
+                else {
+                    const newPage = await this.createPageInHub(datahubId, user.id);
+
+                    const response = {
+                        page: newPage
+                    };
+
+                    // Emit to the specific socket that requested the action
+                    socket.emit('response:createHubPage', response);
+
+                    // Broadcast to all other sockets in the same 'room' or namespace
+                    socket.broadcast.to(datahubId).emit('response:createHubPage', response);
+                }
+            });
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     async createColumn(socket: Socket) {
@@ -35,12 +60,23 @@ class DatahubSocket extends DatahubModel {
             ) => {
                 const { datahubId, type } = req;
 
+                if (!datahubId) {
+                    socket.emit('response:getPagesFromHub', { error: 'DatahubId not found!' });
+                    return;
+                }
+
                 await this.createPropertyInHub(datahubId, type);
 
                 const pages = (await this.getAllPagesFromHub(datahubId) as Page[])
                     .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
 
-                socket.broadcast.emit('response:getPagesFromHub', pages);
+                // socket.broadcast.emit('response:getPagesFromHub', pages);
+                const response = {
+                    pages
+                };
+
+                socket.emit('response:getPagesFromHub', response);
+                socket.broadcast.to(datahubId).emit('response:getPagesFromHub', response);
             });
         } catch (error) {
             console.log(error);
