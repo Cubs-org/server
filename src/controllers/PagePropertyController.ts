@@ -18,7 +18,7 @@ class PagePropertyController {
 
         const { type, data, pageId } = req.body;
 
-        let { title } = setDefaultValuesFromPageProperty({ type, data } as PageProperty);
+        let { title } = setDefaultValuesFromPageProperty(type);
 
         try {
 

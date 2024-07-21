@@ -49,3 +49,10 @@ export type Page = {
     
     properties?: PageProperty[];
 }
+
+export type HubPage = Page & {
+    datahubId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    data: any;
+}

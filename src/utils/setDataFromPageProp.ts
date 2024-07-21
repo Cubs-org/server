@@ -1,6 +1,6 @@
 import { Data } from "../types/pagesTypes";
 
-function setnewDataFromPageProp(type: string, data: Data) {
+function prepareDataOfPgProps(type: string, data: Data) {
   
   let newData;
 
@@ -44,4 +44,4 @@ function setnewDataFromPageProp(type: string, data: Data) {
   }
 }
 
-export default setnewDataFromPageProp;
+export default prepareDataOfPgProps;

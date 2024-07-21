@@ -1,11 +1,9 @@
-import { PageProperty } from '../types/pagesTypes';
+import { PagePropertyType } from '../types/pagesTypes';
 import { today } from './today';
 
-export const setDefaultValuesFromPageProperty = (
-    {type, data}:{ type: string, data: PageProperty['data'] } = { type: '', data: {loadOrder:0} }
-) => {
+export const setDefaultValuesFromPageProperty = (type: PagePropertyType) => {
 
-    let title;
+    let title, data: any = {};
 
     switch (type) {
         case 'text':
@@ -50,13 +48,10 @@ export const setDefaultValuesFromPageProperty = (
             data.value = '';
             break;
         default:
-            title = 'Text';
-            data.value = '';
+            title = 'Texto';
+            data.value = 'helloworld!';
             break;
     }
 
-    return {
-        title: title,
-        data: data ? data : {}
-    }
+    return { title, data }
 };
