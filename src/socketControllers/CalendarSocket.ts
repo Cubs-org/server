@@ -1,40 +1,61 @@
 import { Socket } from "socket.io";
-
 import PageModel from "../models/PageModel";
 import PagePropertyModel from "../models/PagePropertiesModel";
 import UserModel from "../models/UserModel";
-
 import { Page, PageProperty } from "../types/pagesTypes";
-import CalendarModel from "../models/CalendarModel";
+
+const pageModel = new PageModel();
+const pagePropertyModel = new PagePropertyModel();
+const userModel = new UserModel();
 
 class CalendarSocket {
-
-    private pageModel: PageModel;
-    private pagePropertyModel: PagePropertyModel;
-    private userModel: UserModel;
-    private calendarModel: CalendarModel;
-
-    constructor() {
-        this.pageModel = new PageModel();
-        this.pagePropertyModel = new PagePropertyModel();
-        this.userModel = new UserModel();
-        this.calendarModel = new CalendarModel();
-    }
 
     async createNewItem(socket: Socket) {
 
         socket.on('createNewItem', async (req) => {
-            
             const { title, owner, type, content, start, end, color } = req;
 
+            const currentDate = new Date();
+            currentDate.setUTCHours(0, 0, 0, 0);
+            currentDate.setUTCHours(0, 0, 0, 0);
+            currentDate.setUTCHours(0, 0, 0, 0);
+
+            const newItem = {
+                owner,
+                type: type || "task",
+                title: title || "",
+                description: content || "",
+                start: start || currentDate,
+                end: end || currentDate,
+                color: color || "purple",
+            };
+
             try {
-                const user = await this.userModel.getByEmail(owner);
+                const user = await userModel.getByEmail(newItem.owner);
                 if (!user) throw new Error('User not found');
-                
-                const item = await this.calendarModel.create(user.id, title, type, color, content, start, end);
+                else {
+
+                    let statusData = { value: false };
+                    let calendarData = { color: newItem.color };
+                    let descData = { value: newItem.description };
+                    let datetimeData = { start: newItem.start, end: newItem.end };
+
+                    let item: Page = await pageModel.create(newItem.title, user.id);
+
+                    const desc = await pagePropertyModel.create("Descrição", "text", descData, item.id);
+                    const datetime = await pagePropertyModel.create("Data", "datetime", datetimeData, item.id);
+                    const calendar = await pagePropertyModel.create(type, "calendar", calendarData, item.id);
+                    const status = await pagePropertyModel.create("status", "checkbox", statusData, item.id);
+
+                    item = { ...item, properties: [desc, datetime, calendar, status] };
+
+                    if (!item) throw new Error('Error creating new item');
                     
-                socket.emit('updatedCalendarItems', item);
-                this.emitCalendarItems(socket, user.id);
+                    socket.emit('updatedCalendarItems', item);
+
+                    // Após criar o novo item, emitir todos os itens do calendário vinculados a este usuário
+                    this.emitCalendarItems(socket, user.id);
+                }
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
                 console.log("Message:", errorMessage);
@@ -47,19 +68,18 @@ class CalendarSocket {
         let _items:Page[];
         
         try {
-            let items:Page[] = await this.calendarModel.getOwnerItems(userId) as Page[];
-
+            let items:Page[] = await pageModel.getPagesByOwner(userId);
             for (const item of items) {
-                item.properties = await this.pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
+                item.properties = await pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
             }
 
-            if (!items || items.length == 0) throw new Error('Error getting items or no items found');
+            if (!items) throw new Error('Error getting items');
+            else if (items.length === 0) throw new Error('No items found');
 
             _items = items.filter(item => item?.properties && item?.properties.find(prop => prop.type === "calendar"));
 
     
-            socket.broadcast.emit('response:getCalendarItems', _items);
-            socket.emit('response:getCalendarItems', _items);
+            socket.broadcast.emit('updateItems', _items);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
             console.log("Message:", errorMessage);
@@ -67,9 +87,9 @@ class CalendarSocket {
     }
 
     async getCalendarItems(socket: Socket) {
-        socket.on('request:getCalendarItems', async (req) => {
+        socket.on('getCalendarItems', async (req) => {
             const { email } = req;
-            const user = await this.userModel.getByEmail(email);
+            const user = await userModel.getByEmail(email);
             if (user) {
                 this.emitCalendarItems(socket, user.id);
             }
@@ -77,60 +97,46 @@ class CalendarSocket {
     }
 
     async updateItem(socket: Socket) {
-        socket.on('request:updateOnCalendarItem', async (req) => {
+        socket.on('updateItem', async (req) => {
             const { id, title, content, start, end, color, completed } = req;
-    
+
             try {
-                const item = await this.pageModel.getPageById(id);
+                let item = await pageModel.getPageById(id);
                 if (!item) throw new Error('Item not found');
-    
-                // Atualiza o título, se fornecido
-                if (title) {
-                    await this.pageModel.update(id, title);
-                }
-    
-                // Recupera propriedades associadas à página
-                const properties: PageProperty[] = await this.pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
-    
-                // Atualiza as propriedades conforme necessário
-                const updates: Promise<any>[] = [];
-                
-                const updateIfChanged = async (prop: PageProperty, newValue: any, key: string) => {
-                    const oldValue = prop?.data[key];
-                    if (oldValue !== newValue) {
-                        updates.push(this.pagePropertyModel.update(prop.id, { [key]: newValue }));
-                    }
-                };
-    
-                if (properties) {
-                    const descData = properties.find(prop => prop.type === "text") as PageProperty;
-                    const datetimeData = properties.find(prop => prop.type === "datetime") as PageProperty;
-                    const calendarData = properties.find(prop => prop.type === "calendar") as PageProperty;
-                    const statusData = properties.find(prop => prop.title === "status") as PageProperty;
-    
-                    if (content && descData) {
-                        await updateIfChanged(descData, content, 'value');
-                    }
-    
-                    if ((start || end) && datetimeData) {
-                        const { start: oldStart, end: oldEnd } = datetimeData.data as { start: string, end: string };
-                        if (start !== oldStart || end !== oldEnd) {
-                            await updateIfChanged(datetimeData, { start, end }, 'data');
+                else {
+                    if (title)
+                        await pageModel.update(id, title); // Atualiza o título do item
+
+                    let properties:PageProperty[] = await pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
+
+                    if (properties) {
+                        let descData = properties?.find(prop => prop.title === "Descrição") as PageProperty;
+                        let datetimeData = properties?.find(prop => prop.title === "Data") as PageProperty;
+                        let calendarData = properties?.find(prop => prop.type === "calendar") as PageProperty;
+                        let statusData = properties?.find(prop => prop.title === "status") as PageProperty;
+
+                        if (content) {
+                            let { value } = descData?.data as { value: string };
+                            if (value !== content)
+                                await pagePropertyModel.update(descData?.id, { value: content });
                         }
-                    }
-    
-                    if (color && calendarData) {
-                        await updateIfChanged(calendarData, color, 'color');
-                    }
-    
-                    if (completed !== undefined && statusData) {
-                        await updateIfChanged(statusData, completed, 'value');
+                        if (start && end) {
+                            let { start: oldStart, end: oldEnd } = datetimeData?.data as { start: string, end: string };
+                            if (oldStart !== start || oldEnd !== end)
+                                await pagePropertyModel.update(datetimeData?.id, { start, end });
+                        }
+                        if (color) {
+                            let { color: oldColor } = calendarData?.data as { color: string };
+                            if (oldColor !== color)
+                                await pagePropertyModel.update(calendarData?.id, { color });
+                        }
+                        if (completed !== undefined) {
+                            let { value: oldCompleted } = statusData?.data as { value: boolean };
+                            if (oldCompleted !== completed)
+                                await pagePropertyModel.update(statusData?.id, { value: completed });
+                        }                        
                     }
                 }
-    
-                // Executa todas as atualizações em paralelo
-                await Promise.all(updates);
-    
                 this.emitCalendarItems(socket, item.ownerId);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -138,24 +144,23 @@ class CalendarSocket {
             }
         });
     }
-    
 
     async deleteItem(socket: Socket) {
-        socket.on('request:deleteCalendarItem', async (req) => {
+        socket.on('deleteItem', async (req) => {
             const { id } = req;
 
             try {
-                let item = await this.pageModel.getPageById(id);
+                let item = await pageModel.getPageById(id);
                 if (!item) throw new Error('Item not found');
                 else {
-                    const propertiesFromPage = await this.pagePropertyModel.getPropertiesByPage(item.id);
+                    const propertiesFromPage = await pagePropertyModel.getPropertiesByPage(item.id);
                     if (propertiesFromPage.length > 0) {
                         for (const prop of propertiesFromPage)
-                            await this.pagePropertyModel.delete(prop.id);
+                            await pagePropertyModel.delete(prop.id);
                     }
 
                     if (item)
-                        await this.pageModel.delete(item.id);
+                        await pageModel.delete(item.id);
                 }
                 this.emitCalendarItems(socket, item.ownerId);
             } catch (error) {
