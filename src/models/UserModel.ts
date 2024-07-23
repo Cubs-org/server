@@ -60,7 +60,7 @@ class UserModel {
     }
 
     async delete(id: string, trash: boolean) {
-
+        
         const userDeleted = await prisma.workspace.update({
             where: {
                 userId: id

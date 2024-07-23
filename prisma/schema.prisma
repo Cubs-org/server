@@ -121,7 +121,6 @@ model Workspace {
 model Page {
   id        String   @id @default(uuid())
   title     String
-  data      Json?
   ownerId   String   @map("owner_id")
   datahubId String?  @map("datahub_id")
   trash     Boolean? @default(false)
@@ -133,6 +132,7 @@ model Page {
   datahub        DataHub?         @relation(fields: [datahubId], references: [id])
   tool           Block[]
   chat           Chat[]
+  pinnedCalendar Pinned_Calendar[]
 
   @@map("page")
 }
@@ -145,7 +145,7 @@ model DataHub {
 
   Workspace Workspace[]
   Page      Page[]
-  Goal      Goal[]
+  // Goal      Goal[]
 
   @@map("data_hub")
 }
@@ -205,14 +205,26 @@ model Block {
   @@map("tool")
 }
 
-model Goal {
+model Pinned_Calendar {
   id    String   @id @default(uuid())
   title String
   trash Boolean? @default(false)
 
-  databaseId String @map("database_id")
+  pageId String @map("page_id")
 
-  database DataHub @relation(fields: [databaseId], references: [id])
+  page Page @relation(fields: [pageId], references: [id])
 
-  @@map("goal")
+  @@map("pinned_calendar")
 }
+
+// model Goal {
+//   id    String   @id @default(uuid())
+//   title String
+//   trash Boolean? @default(false)
+
+//   databaseId String @map("database_id")
+
+//   database DataHub @relation(fields: [databaseId], references: [id])
+
+//   @@map("goal")
+// }

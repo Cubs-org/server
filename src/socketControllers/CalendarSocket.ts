@@ -50,8 +50,6 @@ class CalendarSocket {
                     item = { ...item, properties: [desc, datetime, calendar, status] };
 
                     if (!item) throw new Error('Error creating new item');
-                    
-                    socket.emit('updatedCalendarItems', item);
 
                     // Após criar o novo item, emitir todos os itens do calendário vinculados a este usuário
                     this.emitCalendarItems(socket, user.id);
@@ -77,9 +75,9 @@ class CalendarSocket {
             else if (items.length === 0) throw new Error('No items found');
 
             _items = items.filter(item => item?.properties && item?.properties.find(prop => prop.type === "calendar"));
-
     
-            socket.broadcast.emit('updateItems', _items);
+            socket.broadcast.emit('response:getCalendarItems', _items);
+            socket.emit('response:getCalendarItems', _items);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
             console.log("Message:", errorMessage);
@@ -87,8 +85,9 @@ class CalendarSocket {
     }
 
     async getCalendarItems(socket: Socket) {
-        socket.on('getCalendarItems', async (req) => {
+        socket.on('request:getCalendarItems', async (req) => {
             const { email } = req;
+            console.log("Email:", email);
             const user = await userModel.getByEmail(email);
             if (user) {
                 this.emitCalendarItems(socket, user.id);
@@ -97,7 +96,7 @@ class CalendarSocket {
     }
 
     async updateItem(socket: Socket) {
-        socket.on('updateItem', async (req) => {
+        socket.on('request:updateOnCalendarItem', async (req) => {
             const { id, title, content, start, end, color, completed } = req;
 
             try {
