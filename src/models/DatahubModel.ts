@@ -1,8 +1,11 @@
 import { prisma } from "../database/prisma-client";
-import { Data, Page, PageProperty, PagePropertyType } from "../types/pagesTypes";
+import { Data, Page, PageProperty } from "../types/pagesTypes";
 import setnewDataFromPageProp from "../utils/setDataFromPageProp";
 import { setDefaultValuesFromPageProperty } from "../utils/setDefaultValuesFromPageProperty";
 import PagePropertiesModel from "./PagePropertiesModel";
+import WorkspaceModel from "./WorkspaceModel";
+
+const wkspModel = new WorkspaceModel();
 
 class DatahubModel extends PagePropertiesModel {
 
@@ -184,30 +187,28 @@ class DatahubModel extends PagePropertiesModel {
         return newPage;
     }
 
-    async createPropertyInHub(hubId:string, type:PagePropertyType) {
+    async createPropertyInHub(hubId:string, type:string) {
 
         const pages = await this.getAllPagesFromHub(hubId);
 
         if (!pages) throw new Error("No pages found");
-        if (!hubId) throw new Error("No hubId found");
 
-        let { title, data } = setDefaultValuesFromPageProperty(type) as PageProperty;
+        let pdata = {} as PageProperty['data'];
+
+        let { title, data } = setDefaultValuesFromPageProperty({ type:type, data:pdata }) as PageProperty;
 
         const pgPropAlreadyExistsInHub = await this.getPropertiesByPage(pages[0].id);
         data.loadOrder = await pgPropAlreadyExistsInHub.length + 1;
 
-        const propertiesCount = pgPropAlreadyExistsInHub.filter(prop => prop.title.includes(title)).length;
-
-        if (propertiesCount > 0) {
-            title = `${title}(${propertiesCount})`;
-        }
+        if (pgPropAlreadyExistsInHub.filter(pgProp => pgProp.title === title).length > 0)
+            title = `${title} (${pgPropAlreadyExistsInHub.length})`;
         
         const newProperties = await prisma.pageProperties.createMany({
             data: pages.map((page) => {
                 return {
-                    title,
-                    type,
-                    data,
+                    title: title,
+                    type: type,
+                    data: data,
                     pageId: page.id
                 } as PageProperty;
             })

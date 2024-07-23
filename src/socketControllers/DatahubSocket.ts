@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import DatahubModel from "../models/DatahubModel";
-import { Page, PageProperty, PagePropertyType } from "../types/pagesTypes";
+import { Page, PageProperty } from "../types/pagesTypes";
 import UserModel from "../models/UserModel";
 
 const userModel = new UserModel();
@@ -34,9 +34,8 @@ class DatahubSocket extends DatahubModel {
                 const user = await userModel.getByEmail(email);
 
                 if (!user) throw new Error('User not found!');
-                if (!datahubId) throw new Error('DatahubId not found!');
-
-                const newPage = await this.createPageInHub(datahubId, user.id);
+                else {
+                    const newPage = await this.createPageInHub(datahubId, user.id);
 
                     const response = {
                         page: newPage
@@ -47,6 +46,7 @@ class DatahubSocket extends DatahubModel {
 
                     // Broadcast to all other sockets in the same 'room' or namespace
                     socket.broadcast.to(datahubId).emit('response:createHubPage', response);
+                }
             });
         } catch (error) {
             console.log(error);
@@ -56,7 +56,7 @@ class DatahubSocket extends DatahubModel {
     async createColumn(socket: Socket) {
         try {
             socket.on('request:createHubNewProperty', async (
-                req: { datahubId: string, type: PagePropertyType }
+                req: { datahubId: string, type: string }
             ) => {
                 const { datahubId, type } = req;
 
@@ -67,8 +67,10 @@ class DatahubSocket extends DatahubModel {
 
                 await this.createPropertyInHub(datahubId, type);
 
-                const pages = await this.getAllPagesFromHub(datahubId);
-                
+                const pages = (await this.getAllPagesFromHub(datahubId) as Page[])
+                    .filter(page => !(page.properties ?? []).find(property => property.type === "calendar"));
+
+                // socket.broadcast.emit('response:getPagesFromHub', pages);
                 const response = {
                     pages
                 };
