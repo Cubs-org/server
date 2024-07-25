@@ -1,0 +1,1 @@
+export type CalendarItemType = "task" | "event" | "reminder" | "page";
