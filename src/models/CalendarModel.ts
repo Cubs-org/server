@@ -66,6 +66,7 @@ class CalendarModel implements ICalendarModel {
         id,
         title,
         description,
+        type,
         start,
         end,
         color,
@@ -88,26 +89,33 @@ class CalendarModel implements ICalendarModel {
             if (description) {
                 let { value } = descData?.data as { value: string };
                 if (value !== description)
-                    await this.pagePropertyModel.update(descData?.id, { value: description || "" });
+                    descData = await this.pagePropertyModel.update(descData?.id, { value: description || "" }) as PageProperty;
             }
             if (start && end) {
                 let { start: oldStart, end: oldEnd } = datetimeData?.data as { start: string, end: string };
                 if (oldStart !== start || oldEnd !== end)
-                    await this.pagePropertyModel.update(datetimeData?.id, { start, end });
+                    datetimeData = await this.pagePropertyModel.update(datetimeData?.id, { start, end }) as PageProperty;
             }
             if (color) {
                 let { color: oldColor } = calendarData?.data as { color: string };
                 if (oldColor !== color)
-                    await this.pagePropertyModel.update(calendarData?.id, { color });
+                    calendarData = await this.pagePropertyModel.update(calendarData?.id, { color }) as PageProperty;
+            }
+            if (type) {
+                let { value: oldType } = calendarData?.data as { value: string };
+                if (oldType !== type)
+                    calendarData = await this.pagePropertyModel.update(calendarData?.id, { value: type }) as PageProperty;
             }
             if (status !== undefined) {
                 let { value: oldCompleted } = statusData?.data as { value: boolean };
                 if (oldCompleted !== status)
-                    await this.pagePropertyModel.update(statusData?.id, { value: status });
+                    statusData = await this.pagePropertyModel.update(statusData?.id, { value: status }) as PageProperty;
             }
+
+            properties = [descData, datetimeData, calendarData, statusData];
         }
 
-        return {...item, properties};
+        return {...{ ...item, title: title || item.title }, properties };
     }
 
     async getOwnerItems(ownerId: string): Promise<Page[]> {
@@ -129,8 +137,6 @@ class CalendarModel implements ICalendarModel {
         for (const item of items) {
             item.properties = await this.pagePropertyModel.getPropertiesByPage(item.id) as PageProperty[];
         }
-
-        if (!items || items.length == 0) throw new Error('Error to getting items or items not found');
 
         return items;
     }

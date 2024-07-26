@@ -14,7 +14,8 @@ function socketController(server: Server) {
         wkspSocket.tagsTest(socket);
 
         calendarSocket.createNewItem(socket);
-        calendarSocket.getCalendarItems(socket);
+        // calendarSocket.getCalendarItems(socket);
+        calendarSocket.getOwnedItems(socket);
         calendarSocket.updateItem(socket);
         calendarSocket.deleteItem(socket);
 
