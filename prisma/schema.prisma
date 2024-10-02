@@ -130,7 +130,7 @@ model Page {
   pageProperties PageProperties[]
   owner          User             @relation(fields: [ownerId], references: [id])
   datahub        DataHub?         @relation(fields: [datahubId], references: [id])
-  tool           Block[]
+  block           Block[]
   chat           Chat[]
   pinnedCalendar Pinned_Calendar[]
 
@@ -195,6 +195,7 @@ model Block {
   type  BlockTypes
   data  String     @db.LongText
   trash Boolean?   @default(false)
+  row Int        @map("row")
   orderY Int    @map("order_y")
   orderX Int      @map("order_x")
 
@@ -202,7 +203,7 @@ model Block {
 
   page Page @relation(fields: [pageId], references: [id])
 
-  @@map("tool")
+  @@map("block")
 }
 
 model Pinned_Calendar {
