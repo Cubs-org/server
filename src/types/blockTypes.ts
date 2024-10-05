@@ -1,4 +1,4 @@
-export type ToolType = 
+export type BlockType = 
     | "text"
     | "table"
     | "code"

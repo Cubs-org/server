@@ -193,7 +193,7 @@ model Chat {
 model Block {
   id    Int        @id @default(autoincrement())
   type  BlockTypes
-  data  String     @db.LongText
+  data  Json?
   trash Boolean?   @default(false)
   row Int        @map("row")
   orderY Int    @map("order_y")
