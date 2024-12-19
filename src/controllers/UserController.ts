@@ -67,6 +67,8 @@ class UserController {
     
             const user = await this.userModel.create(data);
             const hubId = await this.userModel.getHubId(user.id);
+            if (!user) throw new Error('User not created');
+            if (!hubId) throw new Error('HubId not created');
             const token = jwt.sign({ user, hubId }, "secret", { expiresIn: '72h' });
     
             return reply.send({
@@ -130,7 +132,7 @@ class UserController {
             if (user) {
                 const hubId = await this.userModel.getHubId(user.id);
                 const token = jwt.sign({ user, hubId }, "secret", { expiresIn: '72h' });
-                return reply.send({ user, token: token, status: HTTP_STATUS.OK });
+                return reply.send({ user, token, status: HTTP_STATUS.OK });
             } else {
                 const { name, email, picture } = isValidToken;
                 const userCreated = await this.userModel.create({
@@ -145,7 +147,7 @@ class UserController {
                 
                 const token = jwt.sign({ user: userCreated }, "secret", { expiresIn: '72h' });
     
-                return reply.send({ user: userCreated, token: token, status: HTTP_STATUS.OK });
+                return reply.send({ user: userCreated, token, status: HTTP_STATUS.OK });
             }
         } catch (error) {
             console.error('Error:', error);
