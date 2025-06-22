@@ -3,9 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 enum AccountType {
@@ -41,6 +41,7 @@ enum TypeMessage {
 enum PagePropsTypes {
   text
   number
+  date
   datetime
   formula
   selection
@@ -128,8 +129,8 @@ model Page {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   pageProperties PageProperties[]
-  owner          User             @relation(fields: [ownerId], references: [id])
-  datahub        DataHub?         @relation(fields: [datahubId], references: [id])
+  owner          User              @relation(fields: [ownerId], references: [id])
+  datahub        DataHub?          @relation(fields: [datahubId], references: [id])
   tool           Block[]
   chat           Chat[]
   pinnedCalendar Pinned_Calendar[]
@@ -191,12 +192,12 @@ model Chat {
 }
 
 model Block {
-  id    Int        @id @default(autoincrement())
-  type  BlockTypes
-  data  String     @db.LongText
-  trash Boolean?   @default(false)
-  orderY Int    @map("order_y")
-  orderX Int      @map("order_x")
+  id     Int        @id @default(autoincrement())
+  type   BlockTypes
+  data   String     @db.LongText
+  trash  Boolean?   @default(false)
+  orderY Int        @map("order_y")
+  orderX Int        @map("order_x")
 
   pageId String
 
